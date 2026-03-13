@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useIdeaStore } from "../../store/ideaStore";
 import type { Idea } from "../../types/idea";
+import PostPreviewModal from "../preview/PostPreviewModal";
+import Button from "../ui/Button";
 import HookBlock from "./HookBlock";
 import HookStrengthIndicator from "./HookStrengthIndicator";
 import HookTemplatePicker from "./HookTemplatePicker";
@@ -16,6 +18,7 @@ export default function IdeaExpansionModal({
   onClose,
 }: IdeaExpansionModalProps) {
   const updateIdea = useIdeaStore((state) => state.updateIdea);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -53,6 +56,16 @@ export default function IdeaExpansionModal({
           aria-label="Idea title"
         />
 
+        <div className="mb-6 flex justify-end">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setIsPreviewOpen(true)}
+          >
+            Preview Post
+          </Button>
+        </div>
+
         <div className="space-y-5">
           <HookTemplatePicker ideaId={idea.id} />
 
@@ -87,6 +100,16 @@ export default function IdeaExpansionModal({
           />
         </div>
       </motion.div>
+
+      {isPreviewOpen && (
+        <PostPreviewModal
+          hook={idea.hook}
+          insight={idea.insight}
+          twist={idea.twist}
+          cta={idea.cta}
+          onClose={() => setIsPreviewOpen(false)}
+        />
+      )}
     </div>
   );
 }
