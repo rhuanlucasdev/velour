@@ -70,7 +70,7 @@ export default function Dashboard() {
               <IdeaCard
                 id={idea.id}
                 title={idea.title}
-                tags={idea.tags}
+                tags={idea.tags ?? []}
                 isNew={idea.id === lastCreatedIdeaId}
                 onOpen={() => setExpandedIdeaId(idea.id)}
               />

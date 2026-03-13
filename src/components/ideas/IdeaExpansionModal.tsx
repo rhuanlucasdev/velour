@@ -21,6 +21,7 @@ export default function IdeaExpansionModal({
 }: IdeaExpansionModalProps) {
   const updateIdea = useIdeaStore((state) => state.updateIdea);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const tags = idea.tags ?? [];
 
   const handleAddTag = (newTag: string) => {
     const normalizedTag = newTag.trim();
@@ -28,7 +29,7 @@ export default function IdeaExpansionModal({
       return;
     }
 
-    const alreadyExists = idea.tags.some(
+    const alreadyExists = tags.some(
       (tag) => tag.toLowerCase() === normalizedTag.toLowerCase(),
     );
 
@@ -37,7 +38,7 @@ export default function IdeaExpansionModal({
     }
 
     updateIdea(idea.id, {
-      tags: [...idea.tags, normalizedTag],
+      tags: [...tags, normalizedTag],
     });
   };
 
@@ -93,7 +94,7 @@ export default function IdeaExpansionModal({
               Tags
             </h3>
             <div className="flex flex-wrap gap-2">
-              {idea.tags.map((tag) => (
+              {tags.map((tag) => (
                 <TagPill key={tag} label={tag} />
               ))}
               <TagInput onAddTag={handleAddTag} />

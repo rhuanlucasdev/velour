@@ -58,6 +58,21 @@ export const useIdeaStore = create<IdeaStore>()(
     }),
     {
       name: "velour-ideas-storage",
+      version: 2,
+      migrate: (persistedState) => {
+        if (!persistedState || typeof persistedState !== "object") {
+          return persistedState as IdeaStore;
+        }
+
+        const state = persistedState as { ideas?: Idea[] };
+        return {
+          ...persistedState,
+          ideas: (state.ideas ?? []).map((idea) => ({
+            ...idea,
+            tags: Array.isArray(idea.tags) ? idea.tags : [],
+          })),
+        } as IdeaStore;
+      },
       partialize: (state) => ({ ideas: state.ideas }),
     },
   ),
