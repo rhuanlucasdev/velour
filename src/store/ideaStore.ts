@@ -5,7 +5,7 @@ import type { Idea } from "../types/idea";
 type IdeaStore = {
   ideas: Idea[];
   lastCreatedIdeaId: string | null;
-  createIdea: () => void;
+  createIdea: () => string;
   addIdea: () => void;
   reorderIdeas: (activeId: string, overId: string) => void;
   clearLastCreatedIdeaId: () => void;
@@ -22,10 +22,12 @@ export const useIdeaStore = create<IdeaStore>()(
       ideas: [],
       lastCreatedIdeaId: null,
 
-      createIdea: () =>
+      createIdea: () => {
+        const newIdeaId = crypto.randomUUID();
+
         set((state) => {
           const newIdea: Idea = {
-            id: crypto.randomUUID(),
+            id: newIdeaId,
             title: "Untitled Idea",
             tags: [],
             hook: "",
@@ -39,7 +41,10 @@ export const useIdeaStore = create<IdeaStore>()(
             ideas: [...state.ideas, newIdea],
             lastCreatedIdeaId: newIdea.id,
           };
-        }),
+        });
+
+        return newIdeaId;
+      },
 
       addIdea: () => {
         get().createIdea();

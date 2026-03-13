@@ -16,6 +16,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import IdeaCard from "./IdeaCard";
 import IdeaExpansionModal from "./ideas/IdeaExpansionModal";
+import EmptyState from "./ideas/EmptyState";
 import { useIdeaStore } from "../store/ideaStore";
 import Button from "./ui/Button";
 import Container from "./ui/Container";
@@ -97,6 +98,7 @@ export default function Dashboard() {
   const ideas = useIdeaStore((state) => state.ideas);
   const lastCreatedIdeaId = useIdeaStore((state) => state.lastCreatedIdeaId);
   const addIdea = useIdeaStore((state) => state.addIdea);
+  const createIdea = useIdeaStore((state) => state.createIdea);
   const reorderIdeas = useIdeaStore((state) => state.reorderIdeas);
 
   const sensors = useSensors(
@@ -136,6 +138,11 @@ export default function Dashboard() {
     setActiveDragId(null);
   };
 
+  const handleCreateFromEmptyState = () => {
+    const createdId = createIdea();
+    setExpandedIdeaId(createdId);
+  };
+
   return (
     <Container className="py-8">
       <SectionHeader
@@ -167,9 +174,7 @@ export default function Dashboard() {
 
       {/* Ideas grid */}
       {ideas.length === 0 ? (
-        <div className="rounded-xl border border-white/[0.06] bg-[#121212] px-5 py-6 text-[13px] text-white/40">
-          No ideas yet. Start by creating one.
-        </div>
+        <EmptyState onCreate={handleCreateFromEmptyState} />
       ) : (
         <DndContext
           sensors={sensors}
