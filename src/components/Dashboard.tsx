@@ -18,6 +18,7 @@ import IdeaCard from "./IdeaCard";
 import IdeaExpansionModal from "./ideas/IdeaExpansionModal";
 import EmptyState from "./ideas/EmptyState";
 import { useIdeaStore } from "../store/ideaStore";
+import { toast } from "../utils/toast";
 import Container from "./ui/Container";
 import SectionHeader from "./ui/SectionHeader";
 import { useMemo, useState } from "react";
@@ -139,6 +140,7 @@ export default function Dashboard() {
   const handleCreateFromEmptyState = () => {
     const createdId = createIdea();
     setExpandedIdeaId(createdId);
+    toast("Idea created ✅", { type: "success" });
   };
 
   return (

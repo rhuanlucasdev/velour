@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import IdeaExpansionModal from "../ideas/IdeaExpansionModal";
 import TagPill from "../ideas/TagPill";
 import { useIdeaStore } from "../../store/ideaStore";
+import { toast } from "../../utils/toast";
 
 type CommandItem =
   | {
@@ -48,6 +49,7 @@ export default function CommandPalette() {
         description: "Add a fresh idea card to your board",
         run: () => {
           createIdea();
+          toast("Idea created ✅", { type: "success" });
           setIsOpen(false);
         },
       },

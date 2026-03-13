@@ -1,6 +1,7 @@
 import AppLayout from "./components/AppLayout";
 import CommandPalette from "./components/command/CommandPalette";
 import Dashboard from "./components/Dashboard";
+import ToastProvider from "./components/ui/ToastProvider";
 
 export default function App() {
   return (
@@ -9,6 +10,7 @@ export default function App() {
         <Dashboard />
       </AppLayout>
       <CommandPalette />
+      <ToastProvider />
     </>
   );
 }

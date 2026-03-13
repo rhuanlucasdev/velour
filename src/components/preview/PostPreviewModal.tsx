@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "../../utils/toast";
 import Button from "../ui/Button";
 import LinkedInPreview from "./LinkedInPreview";
 import TwitterPreview from "./TwitterPreview";
@@ -49,11 +50,12 @@ export default function PostPreviewModal({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
 
-  const copyText = async () => {
+  const copyText = async (label: string) => {
     try {
       await navigator.clipboard.writeText(postText);
+      toast(`${label} copied to clipboard ✨`, { type: "success" });
     } catch {
-      // no-op fallback for restricted clipboard contexts
+      toast("Could not copy to clipboard", { type: "error" });
     }
   };
 
@@ -99,10 +101,18 @@ export default function PostPreviewModal({
           </div>
 
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={copyText}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => copyText("Tweet")}
+            >
               Copy as Tweet
             </Button>
-            <Button size="sm" variant="outline" onClick={copyText}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => copyText("LinkedIn post")}
+            >
               Copy as LinkedIn Post
             </Button>
           </div>

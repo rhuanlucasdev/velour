@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useIdeaStore } from "../../store/ideaStore";
 import type { Idea } from "../../types/idea";
+import { toast } from "../../utils/toast";
 import PostPreviewModal from "../preview/PostPreviewModal";
 import Button from "../ui/Button";
 import HookBlock from "./HookBlock";
@@ -41,6 +42,7 @@ export default function IdeaExpansionModal({
     updateIdea(idea.id, {
       tags: [...tags, normalizedTag],
     });
+    toast("Tag added", { type: "success" });
   };
 
   useEffect(() => {
@@ -83,6 +85,7 @@ export default function IdeaExpansionModal({
           <button
             onClick={() => {
               deleteIdea(idea.id);
+              toast("Idea deleted 🗑️", { type: "info" });
               onClose();
             }}
             aria-label="Delete idea"

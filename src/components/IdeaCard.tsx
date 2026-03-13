@@ -1,6 +1,7 @@
 import { motion, useSpring } from "framer-motion";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { useIdeaStore } from "../store/ideaStore";
+import { toast } from "../utils/toast";
 import TagPill from "./ideas/TagPill";
 import Card from "./ui/Card";
 
@@ -137,6 +138,7 @@ export default function IdeaCard({
           onClick={(event) => {
             event.stopPropagation();
             deleteIdea(id);
+            toast("Idea deleted 🗑️", { type: "info" });
           }}
           aria-label="Delete idea"
           className="absolute right-3 top-3 z-20 flex h-6 w-6 items-center justify-center rounded-md text-white/30 opacity-0 transition-all duration-150 hover:bg-red-500/15 hover:text-red-400 group-hover:opacity-100"
