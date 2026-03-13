@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useIdeaStore } from "../../store/ideaStore";
 import type { Idea } from "../../types/idea";
 import HookBlock from "./HookBlock";
+import HookTemplatePicker from "./HookTemplatePicker";
 
 interface IdeaExpansionModalProps {
   idea: Idea;
@@ -52,6 +53,8 @@ export default function IdeaExpansionModal({
         />
 
         <div className="space-y-5">
+          <HookTemplatePicker ideaId={idea.id} />
+
           <HookBlock
             title="Hook"
             value={idea.hook}
