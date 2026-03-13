@@ -1,8 +1,10 @@
 import IdeaCard from "./IdeaCard";
+import IdeaExpansionModal from "./ideas/IdeaExpansionModal";
 import { useIdeaStore } from "../store/ideaStore";
 import Button from "./ui/Button";
 import Container from "./ui/Container";
 import SectionHeader from "./ui/SectionHeader";
+import { useMemo, useState } from "react";
 
 const getBentoClasses = (index: number) => {
   if (index === 0) {
@@ -17,9 +19,15 @@ const getBentoClasses = (index: number) => {
 };
 
 export default function Dashboard() {
+  const [expandedIdeaId, setExpandedIdeaId] = useState<string | null>(null);
   const ideas = useIdeaStore((state) => state.ideas);
   const lastCreatedIdeaId = useIdeaStore((state) => state.lastCreatedIdeaId);
   const addIdea = useIdeaStore((state) => state.addIdea);
+
+  const expandedIdea = useMemo(
+    () => ideas.find((idea) => idea.id === expandedIdeaId) ?? null,
+    [ideas, expandedIdeaId],
+  );
 
   return (
     <Container className="py-8">
@@ -63,10 +71,18 @@ export default function Dashboard() {
                 id={idea.id}
                 title={idea.title}
                 isNew={idea.id === lastCreatedIdeaId}
+                onOpen={() => setExpandedIdeaId(idea.id)}
               />
             </div>
           ))}
         </div>
+      )}
+
+      {expandedIdea && (
+        <IdeaExpansionModal
+          idea={expandedIdea}
+          onClose={() => setExpandedIdeaId(null)}
+        />
       )}
     </Container>
   );

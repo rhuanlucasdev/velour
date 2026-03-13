@@ -7,9 +7,15 @@ export interface IdeaCardProps {
   id: string;
   title: string;
   isNew?: boolean;
+  onOpen?: () => void;
 }
 
-export default function IdeaCard({ id, title, isNew = false }: IdeaCardProps) {
+export default function IdeaCard({
+  id,
+  title,
+  isNew = false,
+  onOpen,
+}: IdeaCardProps) {
   const updateIdea = useIdeaStore((state) => state.updateIdea);
   const clearLastCreatedIdeaId = useIdeaStore(
     (state) => state.clearLastCreatedIdeaId,
@@ -97,6 +103,11 @@ export default function IdeaCard({ id, title, isNew = false }: IdeaCardProps) {
         scale: 1.03,
         transition: { type: "spring", stiffness: 200, damping: 20 },
       }}
+      onClick={() => {
+        if (!isEditing) {
+          onOpen?.();
+        }
+      }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
@@ -121,6 +132,7 @@ export default function IdeaCard({ id, title, isNew = false }: IdeaCardProps) {
             ref={inputRef}
             autoFocus
             value={titleValue}
+            onClick={(event) => event.stopPropagation()}
             onChange={(event) => setTitleValue(event.target.value)}
             onBlur={saveTitle}
             onKeyDown={(event) => {
@@ -139,7 +151,10 @@ export default function IdeaCard({ id, title, isNew = false }: IdeaCardProps) {
           />
         ) : (
           <h3
-            onClick={() => setIsEditing(true)}
+            onClick={(event) => {
+              event.stopPropagation();
+              setIsEditing(true);
+            }}
             className="relative z-10 text-[15px] font-semibold tracking-tight text-white/90 transition-colors duration-150 hover:cursor-text hover:text-white"
           >
             {title}
