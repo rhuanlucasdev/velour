@@ -1,19 +1,24 @@
 import { motion, useSpring } from "framer-motion";
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { useIdeaStore } from "../store/ideaStore";
 import Card from "./ui/Card";
 
 export interface IdeaCardProps {
   id: string;
   title: string;
+  isNew?: boolean;
 }
 
-export default function IdeaCard({ id, title }: IdeaCardProps) {
+export default function IdeaCard({ id, title, isNew = false }: IdeaCardProps) {
   const updateIdea = useIdeaStore((state) => state.updateIdea);
+  const clearLastCreatedIdeaId = useIdeaStore(
+    (state) => state.clearLastCreatedIdeaId,
+  );
   const [isEditing, setIsEditing] = useState(false);
   const [titleValue, setTitleValue] = useState(title);
   const [mouseX, setMouseX] = useState<number | null>(null);
   const [mouseY, setMouseY] = useState<number | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const rotateX = useSpring(0, { stiffness: 200, damping: 20 });
   const rotateY = useSpring(0, { stiffness: 200, damping: 20 });
@@ -23,6 +28,25 @@ export default function IdeaCard({ id, title }: IdeaCardProps) {
       setTitleValue(title);
     }
   }, [title, isEditing]);
+
+  useEffect(() => {
+    if (!isNew) {
+      return;
+    }
+
+    setIsEditing(true);
+    setTitleValue(title);
+    clearLastCreatedIdeaId();
+  }, [isNew, title, clearLastCreatedIdeaId]);
+
+  useEffect(() => {
+    if (!isEditing) {
+      return;
+    }
+
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, [isEditing]);
 
   const saveTitle = () => {
     const newTitle = titleValue.trim();
@@ -94,6 +118,7 @@ export default function IdeaCard({ id, title }: IdeaCardProps) {
         />
         {isEditing ? (
           <input
+            ref={inputRef}
             autoFocus
             value={titleValue}
             onChange={(event) => setTitleValue(event.target.value)}

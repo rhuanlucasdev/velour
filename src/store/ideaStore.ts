@@ -3,7 +3,9 @@ import type { Idea } from "../types/idea";
 
 type IdeaStore = {
   ideas: Idea[];
+  lastCreatedIdeaId: string | null;
   addIdea: () => void;
+  clearLastCreatedIdeaId: () => void;
   updateIdea: (
     id: string,
     patch: Partial<Omit<Idea, "id" | "createdAt">>,
@@ -13,21 +15,29 @@ type IdeaStore = {
 
 export const useIdeaStore = create<IdeaStore>((set) => ({
   ideas: [],
+  lastCreatedIdeaId: null,
 
   addIdea: () =>
-    set((state) => ({
-      ideas: [
-        ...state.ideas,
-        {
-          id: crypto.randomUUID(),
-          title: "Untitled Idea",
-          hook: "",
-          insight: "",
-          twist: "",
-          cta: "",
-          createdAt: Date.now(),
-        },
-      ],
+    set((state) => {
+      const newIdea: Idea = {
+        id: crypto.randomUUID(),
+        title: "Untitled Idea",
+        hook: "",
+        insight: "",
+        twist: "",
+        cta: "",
+        createdAt: Date.now(),
+      };
+
+      return {
+        ideas: [...state.ideas, newIdea],
+        lastCreatedIdeaId: newIdea.id,
+      };
+    }),
+
+  clearLastCreatedIdeaId: () =>
+    set(() => ({
+      lastCreatedIdeaId: null,
     })),
 
   updateIdea: (id, patch) =>
