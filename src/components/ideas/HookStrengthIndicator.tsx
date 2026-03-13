@@ -4,7 +4,9 @@ interface HookStrengthIndicatorProps {
   hook: string;
 }
 
-export default function HookStrengthIndicator({ hook }: HookStrengthIndicatorProps) {
+export default function HookStrengthIndicator({
+  hook,
+}: HookStrengthIndicatorProps) {
   const score = calculateHookScore(hook);
 
   return (
