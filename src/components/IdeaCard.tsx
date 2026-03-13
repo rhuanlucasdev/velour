@@ -9,6 +9,7 @@ export interface IdeaCardProps {
   title: string;
   tags: string[];
   isNew?: boolean;
+  disableOpen?: boolean;
   onOpen?: () => void;
 }
 
@@ -17,6 +18,7 @@ export default function IdeaCard({
   title,
   tags,
   isNew = false,
+  disableOpen = false,
   onOpen,
 }: IdeaCardProps) {
   const updateIdea = useIdeaStore((state) => state.updateIdea);
@@ -107,7 +109,7 @@ export default function IdeaCard({
         transition: { type: "spring", stiffness: 200, damping: 20 },
       }}
       onClick={() => {
-        if (!isEditing) {
+        if (!isEditing && !disableOpen) {
           onOpen?.();
         }
       }}

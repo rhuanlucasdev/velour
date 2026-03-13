@@ -7,6 +7,7 @@ type IdeaStore = {
   lastCreatedIdeaId: string | null;
   createIdea: () => void;
   addIdea: () => void;
+  reorderIdeas: (activeId: string, overId: string) => void;
   clearLastCreatedIdeaId: () => void;
   updateIdea: (
     id: string,
@@ -43,6 +44,27 @@ export const useIdeaStore = create<IdeaStore>()(
       addIdea: () => {
         get().createIdea();
       },
+
+      reorderIdeas: (activeId, overId) =>
+        set((state) => {
+          const activeIndex = state.ideas.findIndex(
+            (idea) => idea.id === activeId,
+          );
+          const overIndex = state.ideas.findIndex((idea) => idea.id === overId);
+
+          if (activeIndex < 0 || overIndex < 0 || activeIndex === overIndex) {
+            return state;
+          }
+
+          const nextIdeas = [...state.ideas];
+          const [moved] = nextIdeas.splice(activeIndex, 1);
+          nextIdeas.splice(overIndex, 0, moved);
+
+          return {
+            ...state,
+            ideas: nextIdeas,
+          };
+        }),
 
       clearLastCreatedIdeaId: () =>
         set(() => ({
