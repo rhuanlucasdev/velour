@@ -4,6 +4,18 @@ import Button from "./ui/Button";
 import Container from "./ui/Container";
 import SectionHeader from "./ui/SectionHeader";
 
+const getBentoClasses = (index: number) => {
+  if (index === 0) {
+    return "col-span-1 row-span-1 sm:col-span-2 xl:col-span-2";
+  }
+
+  if (index % 5 === 0) {
+    return "col-span-1 row-span-1 xl:col-span-2";
+  }
+
+  return "col-span-1 row-span-1";
+};
+
 export default function Dashboard() {
   const ideas = useIdeaStore((state) => state.ideas);
   const addIdea = useIdeaStore((state) => state.addIdea);
@@ -44,8 +56,10 @@ export default function Dashboard() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {ideas.map((idea) => (
-            <IdeaCard key={idea.id} title={idea.title} />
+          {ideas.map((idea, index) => (
+            <div key={idea.id} className={getBentoClasses(index)}>
+              <IdeaCard title={idea.title} />
+            </div>
           ))}
         </div>
       )}
