@@ -1,47 +1,24 @@
-import IdeaCard, { IdeaCardProps } from "./IdeaCard";
+import IdeaCard from "./IdeaCard";
+import { useIdeaStore } from "../store/ideaStore";
 import Button from "./ui/Button";
 import Container from "./ui/Container";
 import SectionHeader from "./ui/SectionHeader";
 
-const IDEAS: IdeaCardProps[] = [
-  {
-    title: "Idea 01",
-    description: "Placeholder concept for product exploration.",
-  },
-  {
-    title: "Idea 02",
-    description: "Placeholder concept for product exploration.",
-  },
-  {
-    title: "Idea 03",
-    description: "Placeholder concept for product exploration.",
-  },
-  {
-    title: "Idea 04",
-    description: "Placeholder concept for product exploration.",
-  },
-  {
-    title: "Idea 05",
-    description: "Placeholder concept for product exploration.",
-  },
-  {
-    title: "Idea 06",
-    description: "Placeholder concept for product exploration.",
-  },
-];
-
 export default function Dashboard() {
+  const ideas = useIdeaStore((state) => state.ideas);
+  const addIdea = useIdeaStore((state) => state.addIdea);
+
   return (
     <Container className="py-8">
       <SectionHeader
         title="Ideas"
-        subtitle={`${IDEAS.length} ideas — sorted by latest`}
+        subtitle={`${ideas.length} ideas — sorted by latest`}
         className="mb-6"
       />
 
       {/* Primary CTA */}
       <div className="mb-8">
-        <Button variant="primary" size="md">
+        <Button variant="primary" size="md" onClick={addIdea}>
           <svg
             width="12"
             height="12"
@@ -61,11 +38,17 @@ export default function Dashboard() {
       </div>
 
       {/* Ideas grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {IDEAS.map((idea, index) => (
-          <IdeaCard key={index} {...idea} />
-        ))}
-      </div>
+      {ideas.length === 0 ? (
+        <div className="rounded-xl border border-white/[0.06] bg-[#121212] px-5 py-6 text-[13px] text-white/40">
+          No ideas yet. Start by creating one.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {ideas.map((idea) => (
+            <IdeaCard key={idea.id} title={idea.title} />
+          ))}
+        </div>
+      )}
     </Container>
   );
 }
