@@ -7,6 +7,8 @@ import Button from "../ui/Button";
 import HookBlock from "./HookBlock";
 import HookStrengthIndicator from "./HookStrengthIndicator";
 import HookTemplatePicker from "./HookTemplatePicker";
+import TagInput from "./TagInput";
+import TagPill from "./TagPill";
 
 interface IdeaExpansionModalProps {
   idea: Idea;
@@ -19,6 +21,25 @@ export default function IdeaExpansionModal({
 }: IdeaExpansionModalProps) {
   const updateIdea = useIdeaStore((state) => state.updateIdea);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+  const handleAddTag = (newTag: string) => {
+    const normalizedTag = newTag.trim();
+    if (!normalizedTag) {
+      return;
+    }
+
+    const alreadyExists = idea.tags.some(
+      (tag) => tag.toLowerCase() === normalizedTag.toLowerCase(),
+    );
+
+    if (alreadyExists) {
+      return;
+    }
+
+    updateIdea(idea.id, {
+      tags: [...idea.tags, normalizedTag],
+    });
+  };
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -67,6 +88,18 @@ export default function IdeaExpansionModal({
         </div>
 
         <div className="space-y-5">
+          <section className="rounded-xl border border-white/[0.06] bg-[#1C1C1C]/70 p-4">
+            <h3 className="mb-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-white/45">
+              Tags
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {idea.tags.map((tag) => (
+                <TagPill key={tag} label={tag} />
+              ))}
+              <TagInput onAddTag={handleAddTag} />
+            </div>
+          </section>
+
           <HookTemplatePicker ideaId={idea.id} />
 
           <HookBlock

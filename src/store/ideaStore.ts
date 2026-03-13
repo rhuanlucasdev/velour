@@ -25,6 +25,7 @@ export const useIdeaStore = create<IdeaStore>()(
           const newIdea: Idea = {
             id: crypto.randomUUID(),
             title: "Untitled Idea",
+            tags: [],
             hook: "",
             insight: "",
             twist: "",

@@ -1,11 +1,13 @@
 import { motion, useSpring } from "framer-motion";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { useIdeaStore } from "../store/ideaStore";
+import TagPill from "./ideas/TagPill";
 import Card from "./ui/Card";
 
 export interface IdeaCardProps {
   id: string;
   title: string;
+  tags: string[];
   isNew?: boolean;
   onOpen?: () => void;
 }
@@ -13,6 +15,7 @@ export interface IdeaCardProps {
 export default function IdeaCard({
   id,
   title,
+  tags,
   isNew = false,
   onOpen,
 }: IdeaCardProps) {
@@ -150,15 +153,25 @@ export default function IdeaCard({
             aria-label="Edit idea title"
           />
         ) : (
-          <h3
-            onClick={(event) => {
-              event.stopPropagation();
-              setIsEditing(true);
-            }}
-            className="relative z-10 text-[15px] font-semibold tracking-tight text-white/90 transition-colors duration-150 hover:cursor-text hover:text-white"
-          >
-            {title}
-          </h3>
+          <div className="relative z-10 space-y-3">
+            <h3
+              onClick={(event) => {
+                event.stopPropagation();
+                setIsEditing(true);
+              }}
+              className="text-[15px] font-semibold tracking-tight text-white/90 transition-colors duration-150 hover:cursor-text hover:text-white"
+            >
+              {title}
+            </h3>
+
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {tags.slice(0, 3).map((tag) => (
+                  <TagPill key={tag} label={tag} />
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </Card>
     </motion.div>
