@@ -58,7 +58,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {ideas.map((idea, index) => (
             <div key={idea.id} className={getBentoClasses(index)}>
-              <IdeaCard title={idea.title} />
+              <IdeaCard id={idea.id} title={idea.title} />
             </div>
           ))}
         </div>
