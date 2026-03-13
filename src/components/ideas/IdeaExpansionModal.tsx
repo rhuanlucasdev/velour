@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useIdeaStore } from "../../store/ideaStore";
 import type { Idea } from "../../types/idea";
 import HookBlock from "./HookBlock";
+import HookStrengthIndicator from "./HookStrengthIndicator";
 import HookTemplatePicker from "./HookTemplatePicker";
 
 interface IdeaExpansionModalProps {
@@ -61,6 +62,8 @@ export default function IdeaExpansionModal({
             onChange={(value) => updateIdea(idea.id, { hook: value })}
             placeholder="Capture the opening hook..."
           />
+
+          <HookStrengthIndicator hook={idea.hook} />
 
           <HookBlock
             title="Insight"
