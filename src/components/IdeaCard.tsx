@@ -120,7 +120,7 @@ export default function IdeaCard({
     >
       <Card
         hoverable={false}
-        className="relative h-full overflow-hidden border-white/[0.06] transition-all duration-200 group-hover:border-[#7C5CFF]/35 group-hover:shadow-[0_12px_30px_rgba(0,0,0,0.5),0_0_22px_rgba(124,92,255,0.2)]"
+        className="relative h-full min-h-[140px] overflow-hidden border-white/[0.06] transition-all duration-200 group-hover:border-[#7C5CFF]/35 group-hover:shadow-[0_12px_30px_rgba(0,0,0,0.5),0_0_22px_rgba(124,92,255,0.2)]"
       >
         <div
           className="pointer-events-none absolute inset-0 transition-opacity duration-200"

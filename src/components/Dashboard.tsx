@@ -66,7 +66,7 @@ function SortableIdeaItem({
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: transition ?? "transform 200ms ease",
   };
 
   return (
@@ -75,8 +75,8 @@ function SortableIdeaItem({
       style={style}
       {...attributes}
       {...listeners}
-      className={`${getBentoClasses(index)} touch-none cursor-grab active:cursor-grabbing ${
-        isDragging ? "z-40 scale-[1.02]" : ""
+      className={`${getBentoClasses(index)} touch-none cursor-grab active:cursor-grabbing will-change-transform ${
+        isDragging ? "z-50 opacity-0" : ""
       }`}
     >
       <IdeaCard
@@ -200,8 +200,8 @@ export default function Dashboard() {
 
           <DragOverlay>
             {activeDragIdea ? (
-              <div className="w-full max-w-[560px] scale-[1.03]">
-                <Card className="border-[#7C5CFF]/35 shadow-[0_20px_45px_rgba(0,0,0,0.55),0_0_28px_rgba(124,92,255,0.28)]">
+              <div className="w-full max-w-[560px] scale-105 cursor-grabbing">
+                <Card className="border-[#7C5CFF]/35 shadow-[0_24px_52px_rgba(0,0,0,0.6),0_0_30px_rgba(124,92,255,0.3)]">
                   <div className="space-y-3">
                     <h3 className="text-[15px] font-semibold tracking-tight text-white/95">
                       {activeDragIdea.title}
