@@ -31,10 +31,10 @@ export default function EmptyState({ onCreate }: EmptyStateProps) {
         </div>
 
         <h2 className="text-[22px] font-semibold tracking-tight text-white/90">
-          Nenhuma ideia criada ainda
+          No ideas yet
         </h2>
         <p className="mx-auto mt-2 max-w-[420px] text-[14px] leading-relaxed text-white/45">
-          Comece sua primeira ideia e crie hooks virais!
+          Start your first idea and craft viral hooks!
         </p>
 
         <button
@@ -42,7 +42,7 @@ export default function EmptyState({ onCreate }: EmptyStateProps) {
           onClick={onCreate}
           className="mt-7 inline-flex items-center justify-center rounded-md border border-transparent bg-[#7C5CFF] px-4 py-2.5 text-[13px] font-semibold text-white transition-all duration-200 hover:scale-[1.02] hover:bg-[#6B4EE0] hover:shadow-[0_0_18px_rgba(124,92,255,0.4)]"
         >
-          Criar Nova Ideia
+          Create New Idea
         </button>
       </motion.div>
     </div>

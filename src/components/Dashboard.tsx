@@ -18,7 +18,6 @@ import IdeaCard from "./IdeaCard";
 import IdeaExpansionModal from "./ideas/IdeaExpansionModal";
 import EmptyState from "./ideas/EmptyState";
 import { useIdeaStore } from "../store/ideaStore";
-import Button from "./ui/Button";
 import Container from "./ui/Container";
 import SectionHeader from "./ui/SectionHeader";
 import { useMemo, useState } from "react";
@@ -97,7 +96,6 @@ export default function Dashboard() {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const ideas = useIdeaStore((state) => state.ideas);
   const lastCreatedIdeaId = useIdeaStore((state) => state.lastCreatedIdeaId);
-  const addIdea = useIdeaStore((state) => state.addIdea);
   const createIdea = useIdeaStore((state) => state.createIdea);
   const reorderIdeas = useIdeaStore((state) => state.reorderIdeas);
 
@@ -150,27 +148,6 @@ export default function Dashboard() {
         subtitle={`${ideas.length} ideas — sorted by latest`}
         className="mb-6"
       />
-
-      {/* Primary CTA */}
-      <div className="mb-8">
-        <Button variant="primary" size="md" onClick={addIdea}>
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 12 12"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M6 1v10M1 6h10"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            />
-          </svg>
-          New Idea
-        </Button>
-      </div>
 
       {/* Ideas grid */}
       {ideas.length === 0 ? (
