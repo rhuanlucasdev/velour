@@ -5,6 +5,7 @@ import type { Idea } from "../types/idea";
 type IdeaStore = {
   ideas: Idea[];
   lastCreatedIdeaId: string | null;
+  createIdea: () => void;
   addIdea: () => void;
   clearLastCreatedIdeaId: () => void;
   updateIdea: (
@@ -16,11 +17,11 @@ type IdeaStore = {
 
 export const useIdeaStore = create<IdeaStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ideas: [],
       lastCreatedIdeaId: null,
 
-      addIdea: () =>
+      createIdea: () =>
         set((state) => {
           const newIdea: Idea = {
             id: crypto.randomUUID(),
@@ -38,6 +39,10 @@ export const useIdeaStore = create<IdeaStore>()(
             lastCreatedIdeaId: newIdea.id,
           };
         }),
+
+      addIdea: () => {
+        get().createIdea();
+      },
 
       clearLastCreatedIdeaId: () =>
         set(() => ({
