@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { motion, useSpring } from "framer-motion";
+import { useEffect, useState, type MouseEvent } from "react";
 import { useIdeaStore } from "../store/ideaStore";
 import Card from "./ui/Card";
 
@@ -12,6 +12,11 @@ export default function IdeaCard({ id, title }: IdeaCardProps) {
   const updateIdea = useIdeaStore((state) => state.updateIdea);
   const [isEditing, setIsEditing] = useState(false);
   const [titleValue, setTitleValue] = useState(title);
+  const [mouseX, setMouseX] = useState<number | null>(null);
+  const [mouseY, setMouseY] = useState<number | null>(null);
+
+  const rotateX = useSpring(0, { stiffness: 200, damping: 20 });
+  const rotateY = useSpring(0, { stiffness: 200, damping: 20 });
 
   useEffect(() => {
     if (!isEditing) {
@@ -36,19 +41,57 @@ export default function IdeaCard({ id, title }: IdeaCardProps) {
     setIsEditing(false);
   };
 
+  const handleMouseMove = (event: MouseEvent<HTMLDivElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - bounds.left;
+    const y = event.clientY - bounds.top;
+
+    setMouseX(x);
+    setMouseY(y);
+
+    const horizontal = x / bounds.width - 0.5;
+    const vertical = y / bounds.height - 0.5;
+    const maxTilt = 5;
+
+    rotateY.set(horizontal * (maxTilt * 2));
+    rotateX.set(-vertical * (maxTilt * 2));
+  };
+
+  const handleMouseLeave = () => {
+    setMouseX(null);
+    setMouseY(null);
+    rotateX.set(0);
+    rotateY.set(0);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.25 }}
-      whileHover={{ scale: 1.03 }}
-      className="group h-full"
+      whileHover={{
+        scale: 1.03,
+        transition: { type: "spring", stiffness: 200, damping: 20 },
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+      className="group h-full will-change-transform"
     >
       <Card
         hoverable={false}
         className="relative h-full overflow-hidden border-white/[0.06] transition-all duration-200 group-hover:border-[#7C5CFF]/35 group-hover:shadow-[0_12px_30px_rgba(0,0,0,0.5),0_0_22px_rgba(124,92,255,0.2)]"
       >
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#7C5CFF]/0 via-[#7C5CFF]/0 to-[#7C5CFF]/0 opacity-0 transition-opacity duration-200 group-hover:from-[#7C5CFF]/10 group-hover:via-transparent group-hover:to-[#7C5CFF]/5 group-hover:opacity-100" />
+        <div
+          className="pointer-events-none absolute inset-0 transition-opacity duration-200"
+          style={{
+            opacity: mouseX === null || mouseY === null ? 0 : 1,
+            background:
+              mouseX !== null && mouseY !== null
+                ? `radial-gradient(300px circle at ${mouseX}px ${mouseY}px, rgba(124,92,255,0.15), transparent 40%)`
+                : "none",
+          }}
+        />
         {isEditing ? (
           <input
             autoFocus
