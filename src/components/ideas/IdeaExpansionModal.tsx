@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useEffect } from "react";
 import { useIdeaStore } from "../../store/ideaStore";
 import type { Idea } from "../../types/idea";
+import HookBlock from "./HookBlock";
 
 interface IdeaExpansionModalProps {
   idea: Idea;
@@ -50,62 +51,34 @@ export default function IdeaExpansionModal({
           aria-label="Idea title"
         />
 
-        <div className="space-y-4">
-          <section className="rounded-xl border border-white/[0.06] bg-[#1C1C1C]/70 p-4">
-            <h3 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-white/45">
-              Hook
-            </h3>
-            <textarea
-              value={idea.hook}
-              onChange={(event) =>
-                updateIdea(idea.id, { hook: event.target.value })
-              }
-              className="min-h-[90px] w-full resize-y bg-transparent text-[14px] leading-relaxed text-white/85 outline-none placeholder:text-white/25"
-              placeholder="Capture the opening hook..."
-            />
-          </section>
+        <div className="space-y-5">
+          <HookBlock
+            title="Hook"
+            value={idea.hook}
+            onChange={(value) => updateIdea(idea.id, { hook: value })}
+            placeholder="Capture the opening hook..."
+          />
 
-          <section className="rounded-xl border border-white/[0.06] bg-[#1C1C1C]/70 p-4">
-            <h3 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-white/45">
-              Insight
-            </h3>
-            <textarea
-              value={idea.insight}
-              onChange={(event) =>
-                updateIdea(idea.id, { insight: event.target.value })
-              }
-              className="min-h-[90px] w-full resize-y bg-transparent text-[14px] leading-relaxed text-white/85 outline-none placeholder:text-white/25"
-              placeholder="Describe the core insight..."
-            />
-          </section>
+          <HookBlock
+            title="Insight"
+            value={idea.insight}
+            onChange={(value) => updateIdea(idea.id, { insight: value })}
+            placeholder="Describe the core insight..."
+          />
 
-          <section className="rounded-xl border border-white/[0.06] bg-[#1C1C1C]/70 p-4">
-            <h3 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-white/45">
-              Twist
-            </h3>
-            <textarea
-              value={idea.twist}
-              onChange={(event) =>
-                updateIdea(idea.id, { twist: event.target.value })
-              }
-              className="min-h-[90px] w-full resize-y bg-transparent text-[14px] leading-relaxed text-white/85 outline-none placeholder:text-white/25"
-              placeholder="Add an unexpected angle..."
-            />
-          </section>
+          <HookBlock
+            title="Twist"
+            value={idea.twist}
+            onChange={(value) => updateIdea(idea.id, { twist: value })}
+            placeholder="Add an unexpected angle..."
+          />
 
-          <section className="rounded-xl border border-white/[0.06] bg-[#1C1C1C]/70 p-4">
-            <h3 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-white/45">
-              CTA
-            </h3>
-            <textarea
-              value={idea.cta}
-              onChange={(event) =>
-                updateIdea(idea.id, { cta: event.target.value })
-              }
-              className="min-h-[90px] w-full resize-y bg-transparent text-[14px] leading-relaxed text-white/85 outline-none placeholder:text-white/25"
-              placeholder="Define the call to action..."
-            />
-          </section>
+          <HookBlock
+            title="CTA"
+            value={idea.cta}
+            onChange={(value) => updateIdea(idea.id, { cta: value })}
+            placeholder="Define the call to action..."
+          />
         </div>
       </motion.div>
     </div>
