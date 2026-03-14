@@ -301,9 +301,12 @@ export default function LandingPage() {
           <AuroraBackground />
 
           <div className="relative z-10">
-            <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl md:leading-[1.05]">
-              Craft Viral{" "}
-              <span className="relative inline-flex min-w-[1.2em] items-center justify-start align-baseline">
+            <h1 className="flex flex-wrap items-baseline justify-center gap-x-2 text-4xl font-semibold tracking-tight text-white md:text-6xl md:leading-[1.05]">
+              <span>Craft Viral</span>
+              <span className="relative inline-grid place-items-center align-baseline text-center">
+                <span className="invisible col-start-1 row-start-1 select-none bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
+                  Threads
+                </span>
                 <AnimatePresence mode="wait">
                   <motion.span
                     key={heroWords[heroWordIndex]}
@@ -311,7 +314,7 @@ export default function LandingPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.35, ease: "easeOut" }}
-                    className="bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent"
+                    className="col-start-1 row-start-1 bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent"
                   >
                     {heroWords[heroWordIndex]}
                   </motion.span>
