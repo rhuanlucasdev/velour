@@ -7,12 +7,13 @@ const app = express();
 const port = Number(getEnv("API_PORT", "4242"));
 const stripeSecretKey = maybeGetEnv("STRIPE_SECRET_KEY");
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
-const stripePriceId = maybeGetEnv("STRIPE_PRO_PRICE_ID");
+const stripeProPriceId = maybeGetEnv("STRIPE_PRO_PRICE_ID");
+const stripeCreatorPriceId = maybeGetEnv("STRIPE_CREATOR_PRICE_ID");
 const stripeWebhookSecret = maybeGetEnv("STRIPE_WEBHOOK_SECRET");
 const appUrl = getEnv("APP_URL", "http://localhost:5173");
 
 function assertStripeConfigured(response) {
-  if (!stripe || !stripePriceId || !stripeWebhookSecret || !supabaseAdmin) {
+  if (!stripe || !stripeProPriceId || !stripeWebhookSecret || !supabaseAdmin) {
     response.status(500).json({
       error:
         "Stripe backend is not fully configured. Add STRIPE_SECRET_KEY, STRIPE_PRO_PRICE_ID, STRIPE_WEBHOOK_SECRET and SUPABASE_SERVICE_ROLE_KEY.",
@@ -34,6 +35,32 @@ async function upsertProfile(payload) {
 
   const { error } = await supabaseAdmin.from("profiles").upsert(payload, {
     onConflict: "id",
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function updateUserPlanMetadata(userId, plan) {
+  if (!supabaseAdmin || !userId || !plan) {
+    return;
+  }
+
+  const { data: currentUserData, error: currentUserError } =
+    await supabaseAdmin.auth.admin.getUserById(userId);
+
+  if (currentUserError) {
+    throw currentUserError;
+  }
+
+  const existingAppMetadata = currentUserData.user?.app_metadata ?? {};
+
+  const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+    app_metadata: {
+      ...existingAppMetadata,
+      plan,
+    },
   });
 
   if (error) {
@@ -75,6 +102,8 @@ app.post(
           const session = event.data.object;
           const userId =
             session.metadata?.user_id || session.client_reference_id;
+          const requestedPlan =
+            session.metadata?.requested_plan === "creator" ? "creator" : "pro";
           const customerId =
             typeof session.customer === "string"
               ? session.customer
@@ -91,6 +120,8 @@ app.post(
               stripe_customer_id: customerId ?? null,
               stripe_subscription_id: subscriptionId ?? null,
             });
+
+            await updateUserPlanMetadata(userId, requestedPlan);
           }
           break;
         }
@@ -161,10 +192,24 @@ app.post("/api/create-checkout-session", async (request, response) => {
   }
 
   try {
-    const { userId, email } = request.body ?? {};
+    const { userId, email, plan } = request.body ?? {};
 
     if (!userId) {
       response.status(400).json({ error: "Missing userId" });
+      return;
+    }
+
+    const requestedPlan = plan === "creator" ? "creator" : "pro";
+    const priceId =
+      requestedPlan === "creator" ? stripeCreatorPriceId : stripeProPriceId;
+
+    if (!priceId) {
+      response.status(500).json({
+        error:
+          requestedPlan === "creator"
+            ? "Creator plan is not configured. Add STRIPE_CREATOR_PRICE_ID."
+            : "Pro plan is not configured. Add STRIPE_PRO_PRICE_ID.",
+      });
       return;
     }
 
@@ -173,7 +218,7 @@ app.post("/api/create-checkout-session", async (request, response) => {
       mode: "subscription",
       line_items: [
         {
-          price: stripePriceId,
+          price: priceId,
           quantity: 1,
         },
       ],
@@ -183,6 +228,7 @@ app.post("/api/create-checkout-session", async (request, response) => {
       cancel_url: `${origin}/pricing`,
       metadata: {
         user_id: userId,
+        requested_plan: requestedPlan,
       },
     });
 

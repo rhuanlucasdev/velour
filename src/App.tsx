@@ -16,6 +16,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Logout from "./pages/Logout";
+import Pricing from "./pages/Pricing";
 import Profile from "./pages/Profile";
 import RedirectLoading from "./pages/RedirectLoading";
 import Register from "./pages/Register";
@@ -26,8 +27,12 @@ export default function App() {
   const navigate = useNavigate();
   const pathname = location.pathname;
   const isProfileRoute = pathname === "/profile";
+  const isPricingRoute = pathname === "/pricing";
   const isAppRoute =
-    pathname === "/app" || pathname === "/dashboard" || isProfileRoute;
+    pathname === "/app" ||
+    pathname === "/dashboard" ||
+    isProfileRoute ||
+    isPricingRoute;
   const isLoginRoute = pathname === "/login";
   const isRegisterRoute = pathname === "/register";
   const isForgotPasswordRoute = pathname === "/forgot-password";
@@ -114,6 +119,22 @@ export default function App() {
               <AppLayout>
                 <Profile />
               </AppLayout>
+              <ToastProvider />
+            </>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/pricing"
+        element={
+          session ? (
+            <>
+              <AppLayout>
+                <Pricing />
+              </AppLayout>
+              <UpgradeModal />
               <ToastProvider />
             </>
           ) : (

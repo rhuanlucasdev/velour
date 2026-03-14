@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { toast } from "../utils/toast";
 
 interface NavItem {
   id: string;
@@ -33,6 +32,28 @@ const navItems: NavItem[] = [
         />
         <path
           d="M2.5 13.5c0-2.485 2.462-4.5 5.5-4.5s5.5 2.015 5.5 4.5"
+          stroke="currentColor"
+          strokeOpacity="0.7"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: "pricing",
+    label: "Pricing",
+    href: "/pricing",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"
           stroke="currentColor"
           strokeOpacity="0.7"
           strokeWidth="1.2"
@@ -150,7 +171,6 @@ const navItems: NavItem[] = [
 ];
 
 export default function Sidebar() {
-  const [isRedirectingToCheckout, setIsRedirectingToCheckout] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -187,41 +207,6 @@ export default function Sidebar() {
     setIsNavigating(false);
   }, [currentPath, location.search]);
 
-  const handleUpgrade = async () => {
-    if (!user?.id) {
-      toast("You need to be logged in to upgrade", { type: "error" });
-      return;
-    }
-
-    try {
-      setIsRedirectingToCheckout(true);
-
-      const response = await fetch("/api/create-checkout-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          email: user.email,
-        }),
-      });
-
-      const data = (await response.json()) as { url?: string; error?: string };
-
-      if (!response.ok || !data.url) {
-        throw new Error(data.error || "Could not start checkout");
-      }
-
-      window.location.href = data.url;
-    } catch (error) {
-      toast(error instanceof Error ? error.message : "Checkout failed", {
-        type: "error",
-      });
-      setIsRedirectingToCheckout(false);
-    }
-  };
-
   return (
     <aside className="flex h-full w-[240px] shrink-0 flex-col border-r border-white/[0.06] bg-[#121212] px-3 py-5">
       <div className="mb-6 px-2 text-[15px] font-semibold tracking-tight text-white/90">
@@ -232,7 +217,9 @@ export default function Sidebar() {
           const isActive =
             item.id === "profile"
               ? currentPath === "/profile"
-              : isIdeasRoute && currentTab === item.id;
+              : item.id === "pricing"
+                ? currentPath === "/pricing"
+                : isIdeasRoute && currentTab === item.id;
           return (
             <button
               key={item.id}
@@ -267,13 +254,10 @@ export default function Sidebar() {
         ) : (
           <button
             type="button"
-            onClick={() => void handleUpgrade()}
-            disabled={isRedirectingToCheckout}
+            onClick={() => navigate("/pricing")}
             className="mb-3 inline-flex w-full items-center justify-center rounded-lg border border-transparent bg-[#7C5CFF] px-3 py-2 text-xs font-semibold text-white transition-all duration-150 hover:bg-[#6B4EE0] hover:shadow-[0_0_24px_rgba(124,92,255,0.32)] disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {isRedirectingToCheckout
-              ? "Redirecting..."
-              : "Upgrade to Pro — $10/mo"}
+            Upgrade Plans
           </button>
         )}
 
