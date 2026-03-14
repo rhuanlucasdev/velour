@@ -1,5 +1,6 @@
 import AuroraBackground from "../components/ui/AuroraBackground";
 import LiveHookDemo from "../components/LiveHookDemo";
+import SocialProof from "../components/SocialProof";
 import GridBackground from "../components/ui/GridBackground";
 import {
   motion,
@@ -263,6 +264,7 @@ export default function LandingPage() {
         </section>
 
         <LiveHookDemo />
+        <SocialProof />
 
         <motion.section
           id="features"
