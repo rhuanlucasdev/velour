@@ -1,6 +1,13 @@
 import AuroraBackground from "../components/ui/AuroraBackground";
 import GridBackground from "../components/ui/GridBackground";
-import { motion, useMotionValueEvent, useScroll } from "framer-motion";
+import {
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import { useState, type MouseEvent as ReactMouseEvent } from "react";
 
 const features = [
@@ -105,10 +112,51 @@ function FeatureCard({ title, description, className = "" }: FeatureCardProps) {
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { scrollY } = useScroll();
+  const previewX = useMotionValue(0.5);
+  const previewY = useMotionValue(0.5);
+  const glowX = useMotionValue("50%");
+  const glowY = useMotionValue("50%");
+
+  const rotateXRaw = useTransform(previewY, [0, 1], [8, -8]);
+  const rotateYRaw = useTransform(previewX, [0, 1], [-8, 8]);
+
+  const rotateX = useSpring(rotateXRaw, {
+    stiffness: 140,
+    damping: 22,
+    mass: 0.5,
+  });
+  const rotateY = useSpring(rotateYRaw, {
+    stiffness: 140,
+    damping: 22,
+    mass: 0.5,
+  });
+  const previewGlow = useTransform(
+    [glowX, glowY],
+    ([x, y]) =>
+      `radial-gradient(circle at ${x} ${y}, rgba(139,92,246,0.14), transparent 45%)`,
+  );
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 18);
   });
+
+  const handlePreviewMouseMove = (event: ReactMouseEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const px = (event.clientX - rect.left) / rect.width;
+    const py = (event.clientY - rect.top) / rect.height;
+
+    previewX.set(Math.max(0, Math.min(1, px)));
+    previewY.set(Math.max(0, Math.min(1, py)));
+    glowX.set(`${event.clientX - rect.left}px`);
+    glowY.set(`${event.clientY - rect.top}px`);
+  };
+
+  const handlePreviewMouseLeave = () => {
+    previewX.set(0.5);
+    previewY.set(0.5);
+    glowX.set("50%");
+    glowY.set("50%");
+  };
 
   return (
     <div className="relative min-h-screen bg-[#0A0A0A] text-white">
@@ -208,10 +256,23 @@ export default function LandingPage() {
             className="mx-auto max-w-5xl"
           >
             <motion.div
+              onMouseMove={handlePreviewMouseMove}
+              onMouseLeave={handlePreviewMouseLeave}
               animate={{ y: [0, -8, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="rounded-xl border border-white/[0.08] bg-[#121212] p-4 shadow-[0_26px_70px_rgba(0,0,0,0.55),0_0_35px_rgba(124,92,255,0.16)]"
+              style={{
+                rotateX,
+                rotateY,
+                transformPerspective: 1100,
+                transformStyle: "preserve-3d",
+              }}
+              className="group relative rounded-xl border border-white/[0.08] bg-[#121212] p-4 shadow-[0_26px_70px_rgba(0,0,0,0.55),0_0_35px_rgba(124,92,255,0.16)]"
             >
+              <motion.div
+                className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                style={{ background: previewGlow }}
+              />
+
               <div className="rounded-lg border border-white/[0.06] bg-[#0F0F0F] p-6">
                 <div className="mb-5 flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
