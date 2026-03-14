@@ -1,4 +1,5 @@
 import AuroraBackground from "../components/ui/AuroraBackground";
+import { motion } from "framer-motion";
 
 const features = [
   {
@@ -135,38 +136,54 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="mb-24">
-          <div className="mx-auto max-w-5xl rounded-xl border border-white/[0.08] bg-[#121212] p-4 shadow-[0_26px_70px_rgba(0,0,0,0.55),0_0_35px_rgba(124,92,255,0.16)]">
-            <div className="rounded-lg border border-white/[0.06] bg-[#0F0F0F] p-6">
-              <div className="mb-5 flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-                <span className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
-                <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-              </div>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div className="rounded-lg border border-white/[0.07] bg-[#171717] p-4">
-                  <p className="text-xs uppercase tracking-[0.08em] text-white/40">
-                    Idea Board
-                  </p>
-                  <p className="mt-3 text-sm text-white/80">
-                    Viral CTO Story Angle
-                  </p>
-                  <p className="mt-2 text-xs text-white/45">
-                    #storytelling #startup
-                  </p>
-                </div>
-                <div className="rounded-lg border border-white/[0.07] bg-[#171717] p-4 md:col-span-2">
-                  <p className="text-xs uppercase tracking-[0.08em] text-white/40">
-                    Hook Composer
-                  </p>
-                  <p className="mt-3 text-sm leading-relaxed text-white/72">
-                    "Most founders don&apos;t fail because of product — they
-                    fail because their message sounds like everyone else."
-                  </p>
-                </div>
-              </div>
-            </div>
+        <section className="relative mb-24">
+          <div className="pointer-events-none absolute inset-0 -z-10 flex items-center justify-center overflow-hidden">
+            <div className="h-[320px] w-[720px] rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.28)_0%,rgba(99,102,241,0.18)_35%,rgba(59,130,246,0)_70%)] blur-3xl" />
           </div>
+
+          <motion.div
+            initial={{ y: 40, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="mx-auto max-w-5xl"
+          >
+            <motion.div
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              className="rounded-xl border border-white/[0.08] bg-[#121212] p-4 shadow-[0_26px_70px_rgba(0,0,0,0.55),0_0_35px_rgba(124,92,255,0.16)]"
+            >
+              <div className="rounded-lg border border-white/[0.06] bg-[#0F0F0F] p-6">
+                <div className="mb-5 flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div className="rounded-lg border border-white/[0.07] bg-[#171717] p-4">
+                    <p className="text-xs uppercase tracking-[0.08em] text-white/40">
+                      Idea Board
+                    </p>
+                    <p className="mt-3 text-sm text-white/80">
+                      Viral CTO Story Angle
+                    </p>
+                    <p className="mt-2 text-xs text-white/45">
+                      #storytelling #startup
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-white/[0.07] bg-[#171717] p-4 md:col-span-2">
+                    <p className="text-xs uppercase tracking-[0.08em] text-white/40">
+                      Hook Composer
+                    </p>
+                    <p className="mt-3 text-sm leading-relaxed text-white/72">
+                      "Most founders don&apos;t fail because of product — they
+                      fail because their message sounds like everyone else."
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
           <p className="mt-4 text-center text-sm text-white/50">
             Organize, write and refine your content ideas in one place.
           </p>
