@@ -6,9 +6,40 @@ interface NavItem {
   id: string;
   label: string;
   icon: React.ReactNode;
+  href?: string;
 }
 
 const navItems: NavItem[] = [
+  {
+    id: "profile",
+    label: "Profile",
+    href: "/profile",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle
+          cx="8"
+          cy="5.5"
+          r="2.5"
+          stroke="currentColor"
+          strokeOpacity="0.7"
+          strokeWidth="1.2"
+        />
+        <path
+          d="M2.5 13.5c0-2.485 2.462-4.5 5.5-4.5s5.5 2.015 5.5 4.5"
+          stroke="currentColor"
+          strokeOpacity="0.7"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+  },
   {
     id: "ideas",
     label: "Ideas",
@@ -118,6 +149,7 @@ export default function Sidebar() {
   const [active, setActive] = useState("ideas");
   const [isRedirectingToCheckout, setIsRedirectingToCheckout] = useState(false);
   const { user, logout, isPro } = useAuth();
+  const currentPath = window.location.pathname;
 
   const avatarUrl = user?.user_metadata.avatar_url as string | undefined;
   const displayName =
@@ -173,11 +205,19 @@ export default function Sidebar() {
       </div>
       <nav className="space-y-1">
         {navItems.map((item) => {
-          const isActive = active === item.id;
+          const isActive = item.href
+            ? currentPath === item.href
+            : active === item.id;
           return (
             <button
               key={item.id}
-              onClick={() => setActive(item.id)}
+              onClick={() => {
+                if (item.href) {
+                  window.location.href = item.href;
+                } else {
+                  setActive(item.id);
+                }
+              }}
               className={`
                 w-full rounded-lg px-3 py-2 text-left text-[13.5px] font-medium transition-all duration-150
                 flex items-center gap-2.5
