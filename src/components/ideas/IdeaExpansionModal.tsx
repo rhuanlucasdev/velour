@@ -66,6 +66,11 @@ export default function IdeaExpansionModal({
     toast("Tag added", { type: "success" });
   };
 
+  const handleCopyHook = async () => {
+    await navigator.clipboard.writeText(idea.hook);
+    toast("Hook copiado para o clipboard ✨", { type: "success" });
+  };
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -175,6 +180,14 @@ export default function IdeaExpansionModal({
           />
 
           <HookStrengthIndicator hook={idea.hook} />
+
+          <button
+            onClick={handleCopyHook}
+            disabled={!idea.hook.trim()}
+            className="inline-flex items-center rounded-lg border border-white/[0.12] bg-[#1A1A1A] px-3 py-2 text-sm text-white/80 transition duration-200 hover:scale-105 hover:border-violet-400/60 hover:shadow-[0_0_16px_rgba(167,139,250,0.22)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:border-white/[0.12] disabled:hover:shadow-none"
+          >
+            Copy Hook
+          </button>
 
           <HookBlock
             title="Insight"
