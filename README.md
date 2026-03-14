@@ -36,6 +36,7 @@ The experience is split into two main surfaces:
 - Protected `/app` route
 - Sidebar with authenticated user avatar
 - Logout flow
+- Pro upgrade CTA via Stripe Checkout
 
 ### Ideas Workflow
 
@@ -61,6 +62,13 @@ The experience is split into two main surfaces:
 - Dashboard loads ideas from Supabase on login
 - Local UI state synced with remote database updates
 
+### Billing (Stripe)
+
+- Subscription checkout for Velour Pro (`$10/month`)
+- API endpoint: `POST /api/create-checkout-session`
+- Stripe webhook endpoint: `POST /api/stripe-webhook`
+- Subscription status synced to Supabase `profiles.is_pro`
+
 ---
 
 ## Tech Stack
@@ -84,6 +92,15 @@ Create a local env file at [.env.local](.env.local):
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxx
+
+APP_URL=http://localhost:5173
+API_PORT=4242
+
+STRIPE_SECRET_KEY=sk_test_xxxxx
+STRIPE_PRO_PRICE_ID=price_xxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxxx
+
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_xxxxx
 ```
 
 > Do not expose Supabase `sb_secret` keys in the frontend.
@@ -114,6 +131,37 @@ This creates:
 - index for `user_id` + `created_at`
 - RLS policy restricting access to each user's own ideas
 
+Then run [supabase/profiles.sql](supabase/profiles.sql) to create billing profile state.
+
+This creates:
+
+- `profiles` table
+- `is_pro` flag
+- Stripe customer/subscription IDs
+- RLS policies for profile access
+
+---
+
+## Stripe Setup
+
+1. Create a product in Stripe (Velour Pro)
+2. Create a recurring monthly price (`$10/month`)
+3. Copy `price_...` into `STRIPE_PRO_PRICE_ID`
+4. Use test secret key (`sk_test_...`) in `STRIPE_SECRET_KEY`
+5. Start local webhook forwarding:
+
+```bash
+stripe listen --forward-to http://localhost:4242/api/stripe-webhook
+```
+
+6. Copy generated `whsec_...` into `STRIPE_WEBHOOK_SECRET`
+
+Test card:
+
+- `4242 4242 4242 4242`
+- any future date
+- any CVC
+
 ---
 
 ## Getting Started
@@ -122,7 +170,7 @@ This creates:
 # install dependencies
 npm install
 
-# start development server
+# start web + api server
 npm run dev
 
 # build for production
@@ -134,6 +182,8 @@ Then:
 1. Add Supabase env vars
 2. Configure Google and GitHub auth providers
 3. Run the SQL from [supabase/ideas.sql](supabase/ideas.sql)
+4. Run the SQL from [supabase/profiles.sql](supabase/profiles.sql)
+5. Configure Stripe product/price/webhook
 
 ---
 
@@ -195,7 +245,13 @@ src/
 └── vite-env.d.ts
 
 supabase/
-└── ideas.sql
+├── ideas.sql
+└── profiles.sql
+
+server/
+├── env.js
+├── index.js
+└── supabaseAdmin.js
 ```
 
 ---
@@ -213,6 +269,8 @@ Already implemented:
 - [x] Create / edit / delete ideas
 - [x] Hook templates and previews
 - [x] Drag-and-drop dashboard
+- [x] Stripe subscription checkout
+- [x] Pro status sync via webhook
 
 Possible next steps:
 
