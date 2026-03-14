@@ -72,7 +72,7 @@ const pricingPlans = [
   {
     name: "Free",
     price: "$0 / month",
-    features: ["5 ideas", "basic templates", "post preview", "local storage"],
+    features: ["10 ideas", "basic templates", "post preview", "local storage"],
     cta: "Get Started",
   },
   {

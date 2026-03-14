@@ -6,68 +6,97 @@
 
 ## Overview
 
-Velour is a React + TypeScript SaaS-style app for creators who want a polished workflow for ideation and content development. The project now includes a premium marketing landing page, protected app access with Supabase authentication, and persistent idea storage per user.
+Velour is a React + TypeScript SaaS-style platform for creators with a polished workflow for ideation, hook crafting, scheduling, sharing, and creator discovery.
 
-The experience is split into two main surfaces:
+The product has two main surfaces:
 
 - **Landing page** at `/` for product marketing and conversion
-- **Authenticated app** at `/app` for managing content ideas
+- **Authenticated app** for creation, publishing workflow, and community discovery
 
 ---
 
-## Current Features
+## What’s Implemented
 
-### Landing Page
+### Marketing + Landing
 
 - Premium dark-mode SaaS landing page
-- Animated hero with aurora, spotlight, and rotating headline word
+- Animated hero (aurora, spotlight, rotating headline)
 - Creator platform logo strip
-- “Before vs After Velour” comparison section
-- Social proof and fake real-time activity feed
-- Live hook generation demo
-- Pricing section and beta email capture card
-- Glassmorphism UI, subtle motion, and high-end visual polish
+- Before/after comparison section
+- Social proof and real-time style activity feed
+- Live hook demo preview
+- Pricing cards and beta capture section
 
-### Authenticated App
+### Authentication + Account
 
-- Supabase authentication with:
-  - Google login
-  - GitHub login
-- Protected `/app` route
-- Sidebar with authenticated user avatar
-- Logout flow
-- Pro upgrade CTA via Stripe Checkout
+- Supabase auth with Google and GitHub
+- Protected routes with session-based redirects
+- Profile management:
+  - display name editing
+  - avatar upload
+  - password update (email provider)
+  - logout flow
+- Billing management access for paid plans
 
-### Ideas Workflow
+### Core Idea Workflow
 
 - Create, edit, and delete ideas
-- Structured idea fields:
-  - title
-  - tags
-  - hook
-  - insight
-  - twist
-  - cta
-- Hook templates
-- Hook strength indicator
-- Post preview modal
-- Drag-and-drop idea board
+- Structured fields: title, tags, hook, insight, twist, cta
+- Hook templates + hook strength scoring
+- Drag-and-drop idea organization
+- Post previews (Twitter + LinkedIn)
 - Command palette shortcuts
+- Autosave behavior and toast feedback
 
-### Data Persistence
+### Premium Creator Features
 
-- Ideas stored in Supabase database
-- Row Level Security enabled
-- User isolation by `user_id`
-- Dashboard loads ideas from Supabase on login
-- Local UI state synced with remote database updates
+- Advanced hook analytics panel (Creator)
+- Content Calendar with weekly scheduling (Creator)
+- Creator Early Access badge across key surfaces
+- Shareable hook cards (copy/share/download image)
+
+### Viral Hooks Library
+
+- Community hooks list with sections:
+  - Trending (most copied)
+  - Top (most liked)
+  - Recent (latest)
+- Save hook from idea editor to library
+- Copy count tracking
+- Like flow with duplicate-like guard
+
+### Creator Discovery + Public Profiles
+
+- Creators discovery page at `/creators`
+- Public creator profile route: `/creator/:username`
+- Follow/unfollow system
+- Public creator metrics:
+  - total hooks
+  - total likes
+  - total copies
+  - followers
+  - velour plan
+- Profile shortcut to “View my Creator Profile”
 
 ### Billing (Stripe)
 
-- Subscription checkout for Velour Pro (`$10/month`)
-- API endpoint: `POST /api/create-checkout-session`
-- Stripe webhook endpoint: `POST /api/stripe-webhook`
-- Subscription status synced to Supabase `profiles.is_pro`
+- Checkout session for paid plan upgrades
+- Billing portal session endpoint
+- Stripe webhook to sync subscription state
+
+---
+
+## App Routes
+
+- `/` → Landing page
+- `/login` / `/register` / `/forgot-password` / `/logout`
+- `/app` (dashboard)
+- `/profile`
+- `/pricing`
+- `/library`
+- `/calendar`
+- `/creators`
+- `/creator/:username`
 
 ---
 
@@ -81,13 +110,16 @@ The experience is split into two main surfaces:
 | Styling   | Tailwind CSS  |
 | Motion    | Framer Motion |
 | State     | Zustand       |
+| Router    | React Router  |
 | Auth + DB | Supabase      |
+| Billing   | Stripe        |
+| Backend   | Express       |
 
 ---
 
 ## Environment Variables
 
-Create a local env file at [.env.local](.env.local):
+Create [.env.local](.env.local):
 
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
@@ -103,15 +135,15 @@ STRIPE_WEBHOOK_SECRET=whsec_xxxxx
 SUPABASE_SERVICE_ROLE_KEY=sb_secret_xxxxx
 ```
 
-> Do not expose Supabase `sb_secret` keys in the frontend.
+> Never expose Supabase secret/service-role keys in frontend code.
 
 ---
 
 ## Supabase Setup
 
-### 1. Authentication
+### 1) Authentication Providers
 
-Configure these providers in Supabase:
+Enable:
 
 - Google
 - GitHub
@@ -121,132 +153,76 @@ Set:
 - **Site URL**: `http://localhost:5173`
 - **Redirect URL**: `http://localhost:5173/app`
 
-### 2. Database
+### 2) Database SQL (Run in this order)
 
-Run the SQL in [supabase/ideas.sql](supabase/ideas.sql) inside the Supabase SQL Editor.
+1. [supabase/ideas.sql](supabase/ideas.sql)
+2. [supabase/profiles.sql](supabase/profiles.sql)
+3. [supabase/hooks_library.sql](supabase/hooks_library.sql)
+4. [supabase/creator_profiles.sql](supabase/creator_profiles.sql)
+5. (Optional) [supabase/backfill_creator_profiles_plan.sql](supabase/backfill_creator_profiles_plan.sql)
 
-This creates:
-
-- `ideas` table
-- index for `user_id` + `created_at`
-- RLS policy restricting access to each user's own ideas
-
-Then run [supabase/profiles.sql](supabase/profiles.sql) to create billing profile state.
-
-This creates:
-
-- `profiles` table
-- `is_pro` flag
-- Stripe customer/subscription IDs
-- RLS policies for profile access
+The optional backfill script is useful when `creator_profiles.plan` must be corrected for previously created profiles.
 
 ---
 
 ## Stripe Setup
 
-1. Create a product in Stripe (Velour Pro)
-2. Create a recurring monthly price (`$10/month`)
-3. Copy `price_...` into `STRIPE_PRO_PRICE_ID`
-4. Use test secret key (`sk_test_...`) in `STRIPE_SECRET_KEY`
-5. Start local webhook forwarding:
+1. Create product/price in Stripe (monthly)
+2. Set `STRIPE_PRO_PRICE_ID`
+3. Set `STRIPE_SECRET_KEY`
+4. Start webhook forwarding:
 
 ```bash
 stripe listen --forward-to http://localhost:4242/api/stripe-webhook
 ```
 
-6. Copy generated `whsec_...` into `STRIPE_WEBHOOK_SECRET`
-
-Test card:
-
-- `4242 4242 4242 4242`
-- any future date
-- any CVC
+5. Copy the generated signing secret to `STRIPE_WEBHOOK_SECRET`
 
 ---
 
-## Getting Started
+## Local Development
 
 ```bash
 # install dependencies
 npm install
 
-# start web + api server
+# run web + api server
 npm run dev
 
-# build for production
+# production build check
 npm run build
 ```
 
-Then:
-
-1. Add Supabase env vars
-2. Configure Google and GitHub auth providers
-3. Run the SQL from [supabase/ideas.sql](supabase/ideas.sql)
-4. Run the SQL from [supabase/profiles.sql](supabase/profiles.sql)
-5. Configure Stripe product/price/webhook
-
 ---
 
-## Project Structure
+## Project Structure (High-Level)
 
 ```text
 src/
 ├── components/
-│   ├── auth/
-│   │   └── LoginModal.tsx
-│   ├── command/
-│   │   └── CommandPalette.tsx
-│   ├── ideas/
-│   │   ├── EmptyState.tsx
-│   │   ├── HookBlock.tsx
-│   │   ├── HookStrengthIndicator.tsx
-│   │   ├── HookTemplatePicker.tsx
-│   │   ├── IdeaExpansionModal.tsx
-│   │   ├── TagInput.tsx
-│   │   └── TagPill.tsx
-│   ├── preview/
-│   │   ├── LinkedInPreview.tsx
-│   │   ├── PostPreviewModal.tsx
-│   │   └── TwitterPreview.tsx
-│   ├── ui/
-│   │   ├── AuroraBackground.tsx
-│   │   ├── AutosaveIndicator.tsx
-│   │   ├── Button.tsx
-│   │   ├── Card.tsx
-│   │   ├── Container.tsx
-│   │   ├── GridBackground.tsx
-│   │   ├── SectionHeader.tsx
-│   │   └── ToastProvider.tsx
-│   ├── AppLayout.tsx
-│   ├── Dashboard.tsx
-│   ├── IdeaCard.tsx
-│   ├── LiveActivityFeed.tsx
-│   ├── LiveHookDemo.tsx
-│   └── Sidebar.tsx
 ├── context/
-│   └── AuthContext.tsx
 ├── data/
-│   └── hookTemplates.ts
 ├── lib/
-│   └── supabase.ts
 ├── pages/
-│   └── LandingPage.tsx
+│   ├── LandingPage.tsx
+│   ├── Profile.tsx
+│   ├── Pricing.tsx
+│   ├── Library.tsx
+│   ├── Calendar.tsx
+│   ├── Creators.tsx
+│   └── CreatorProfile.tsx
 ├── store/
-│   ├── ideaStore.ts
-│   └── toastStore.ts
 ├── types/
-│   └── idea.ts
 ├── utils/
-│   ├── calculateHookScore.ts
-│   └── toast.ts
 ├── App.tsx
-├── index.css
-├── main.tsx
-└── vite-env.d.ts
+└── main.tsx
 
 supabase/
 ├── ideas.sql
-└── profiles.sql
+├── profiles.sql
+├── hooks_library.sql
+├── creator_profiles.sql
+└── backfill_creator_profiles_plan.sql
 
 server/
 ├── env.js
@@ -256,29 +232,15 @@ server/
 
 ---
 
-## Product Status
+## Current Status
 
-Already implemented:
-
-- [x] Premium landing page
-- [x] Auth with Supabase
-- [x] Google login
-- [x] GitHub login
-- [x] Persistent ideas with Supabase
-- [x] Row Level Security for ideas
-- [x] Create / edit / delete ideas
-- [x] Hook templates and previews
-- [x] Drag-and-drop dashboard
-- [x] Stripe subscription checkout
-- [x] Pro status sync via webhook
-
-Possible next steps:
-
-- [ ] Persist idea ordering in database
-- [ ] Realtime sync across tabs/devices
-- [ ] Team/shared workspaces
-- [ ] AI-assisted writing features
-- [ ] Billing / subscriptions
+- [x] Landing and marketing surface
+- [x] Supabase auth + protected app routes
+- [x] Creator-focused idea workflow
+- [x] Premium analytics/calendar/sharing surfaces
+- [x] Viral hooks library with likes/copies
+- [x] Public creator profiles + discovery + follow system
+- [x] Stripe checkout + webhook + billing portal support
 
 ---
 
