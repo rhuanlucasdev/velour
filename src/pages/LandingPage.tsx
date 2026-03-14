@@ -301,6 +301,18 @@ export default function LandingPage() {
         }}
       />
 
+      <div className="relative z-[60] h-10 w-full bg-gradient-to-r from-purple-600 to-indigo-600">
+        <div className="group mx-auto flex h-full w-full max-w-6xl items-center justify-center gap-2 px-4 text-center text-sm text-white/95 md:text-[13px]">
+          <span>🚀 Velour Beta is Live — Try it now</span>
+          <a
+            href="/app"
+            className="launch-cta font-semibold underline underline-offset-4 transition-opacity duration-200 hover:opacity-90 group-hover:animate-pulse"
+          >
+            Open Velour
+          </a>
+        </div>
+      </div>
+
       <div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-10 md:px-8 lg:px-12">
         <motion.header
           initial={{ opacity: 0, y: -16 }}
