@@ -59,20 +59,33 @@ const steps = [
 
 const pricingPlans = [
   {
-    name: "Starter",
-    price: "Free",
-    description: "Perfect to start organizing ideas and writing better hooks.",
+    name: "Free",
+    price: "$0 / month",
+    features: ["5 ideas", "basic templates", "post preview", "local storage"],
+    cta: "Get Started",
+  },
+  {
+    name: "Pro",
+    price: "$12 / month",
+    features: [
+      "unlimited ideas",
+      "all hook templates",
+      "hook strength scoring",
+      "export to Twitter and LinkedIn",
+    ],
+    badge: "Most Popular",
+    cta: "Upgrade to Pro",
   },
   {
     name: "Creator",
-    price: "$12/mo",
-    description:
-      "Advanced workflow with previews, templates, and faster output.",
-  },
-  {
-    name: "Pro Team",
-    price: "$29/mo",
-    description: "Collaboration-ready setup for content teams and agencies.",
+    price: "$29 / month",
+    features: [
+      "everything in Pro",
+      "advanced hook analytics",
+      "content calendar",
+      "priority updates",
+    ],
+    cta: "Go Creator",
   },
 ];
 
@@ -368,32 +381,65 @@ export default function LandingPage() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
           viewport={{ once: true, amount: 0.2 }}
-          className="mb-24"
+          className="mx-auto mb-24 max-w-6xl py-32"
         >
-          <h2 className="text-2xl font-semibold tracking-tight text-white/95 md:text-3xl">
-            Pricing
+          <h2 className="text-3xl font-semibold tracking-tight text-white/95 md:text-4xl">
+            Simple Pricing
           </h2>
-          <p className="mt-2 text-sm text-white/50 md:text-base">
-            Choose the plan that matches your content velocity.
+          <p className="mt-3 text-base text-white/55 md:text-lg">
+            Start free and upgrade when you need more power.
           </p>
 
-          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
             {pricingPlans.map((plan, index) => (
               <article
                 key={plan.name}
-                className={`rounded-2xl border p-5 ${
+                className={`group relative rounded-3xl border border-white/10 bg-white/5 p-7 backdrop-blur-lg transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_20px_60px_rgba(124,92,255,0.18)] ${
                   index === 1
-                    ? "border-[#7C5CFF]/45 bg-[#191424] shadow-[0_0_25px_rgba(124,92,255,0.18)]"
-                    : "border-white/[0.08] bg-[#141414]"
+                    ? "md:scale-[1.03] md:border-transparent md:bg-gradient-to-br md:from-purple-500/30 md:to-indigo-500/30 md:p-[1px] md:shadow-[0_25px_70px_rgba(124,92,255,0.26)]"
+                    : ""
                 }`}
               >
-                <p className="text-sm font-medium text-white/70">{plan.name}</p>
-                <p className="mt-2 text-2xl font-semibold tracking-tight text-white/95">
-                  {plan.price}
-                </p>
-                <p className="mt-3 text-sm leading-relaxed text-white/50">
-                  {plan.description}
-                </p>
+                <div
+                  className={`h-full rounded-3xl ${
+                    index === 1
+                      ? "border border-white/10 bg-[#151226]/95 p-7 backdrop-blur-lg"
+                      : ""
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-white/75">{plan.name}</p>
+                    {plan.badge ? (
+                      <span className="rounded-full border border-purple-300/40 bg-purple-500/20 px-2.5 py-1 text-[11px] font-medium text-purple-100">
+                        {plan.badge}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <p className="mt-3 text-3xl font-semibold tracking-tight text-white/95">
+                    {plan.price}
+                  </p>
+
+                  <ul className="mt-5 space-y-2.5 text-sm text-white/65">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#A78FFF]" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <a
+                    href="/app"
+                    className={`mt-7 inline-flex w-full items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                      index === 1
+                        ? "border-transparent bg-[#7C5CFF] text-white hover:bg-[#6B4EE0] hover:shadow-[0_0_24px_rgba(124,92,255,0.38)]"
+                        : "border-white/15 bg-[#171717] text-white/85 hover:border-white/30 hover:bg-[#1F1F1F]"
+                    }`}
+                  >
+                    {plan.cta}
+                  </a>
+                </div>
               </article>
             ))}
           </div>
