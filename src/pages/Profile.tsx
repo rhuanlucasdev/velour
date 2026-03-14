@@ -25,6 +25,15 @@ export default function Profile() {
     avatarUrl,
   );
   const [isManagingBilling, setIsManagingBilling] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
+  const providers =
+    (user?.app_metadata?.providers as string[] | undefined) ?? [];
+  const hasSocialProvider =
+    providers.includes("github") || providers.includes("google");
+  const canChangePassword = providers.includes("email") && !hasSocialProvider;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -131,6 +140,45 @@ export default function Profile() {
 
   const handleLogout = () => {
     navigate("/logout");
+  };
+
+  const handleChangePassword = async () => {
+    if (!canChangePassword) {
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast("Password must be at least 6 characters", { type: "error" });
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      toast("Passwords do not match", { type: "error" });
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setNewPassword("");
+      setConfirmNewPassword("");
+      toast("Password updated successfully", { type: "success" });
+    } catch (error) {
+      toast(
+        error instanceof Error ? error.message : "Could not update password",
+        { type: "error" },
+      );
+    } finally {
+      setIsUpdatingPassword(false);
+    }
   };
 
   const cardClass =
@@ -399,6 +447,67 @@ export default function Profile() {
           <h2 className="mb-5 text-[11px] font-semibold uppercase tracking-widest text-white/25">
             Account
           </h2>
+
+          {canChangePassword ? (
+            <div className="mb-5 rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-white/35">
+                Security
+              </p>
+
+              <div className="mt-3 space-y-2.5">
+                <div>
+                  <label className="mb-1 block text-xs text-white/45">
+                    New password
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                    minLength={6}
+                    autoComplete="new-password"
+                    placeholder="At least 6 characters"
+                    className="w-full rounded-lg border border-white/[0.1] bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition-all placeholder:text-white/25 focus:border-[#7C5CFF]/50 focus:ring-1 focus:ring-[#7C5CFF]/25"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs text-white/45">
+                    Confirm new password
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmNewPassword}
+                    onChange={(event) =>
+                      setConfirmNewPassword(event.target.value)
+                    }
+                    minLength={6}
+                    autoComplete="new-password"
+                    placeholder="Repeat new password"
+                    className="w-full rounded-lg border border-white/[0.1] bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition-all placeholder:text-white/25 focus:border-[#7C5CFF]/50 focus:ring-1 focus:ring-[#7C5CFF]/25"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => void handleChangePassword()}
+                  disabled={isUpdatingPassword}
+                  className="inline-flex items-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2 text-xs font-medium text-white/65 transition-all duration-150 hover:border-[#7C5CFF]/35 hover:bg-[#7C5CFF]/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isUpdatingPassword ? "Updating..." : "Update password"}
+                </button>
+              </div>
+            </div>
+          ) : hasSocialProvider ? (
+            <div className="mb-5 rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-white/35">
+                Security
+              </p>
+              <p className="mt-2 text-sm text-white/55">
+                This account uses social login ({providers.join(" / ")}).
+                Password is managed by your identity provider.
+              </p>
+            </div>
+          ) : null}
 
           <button
             type="button"

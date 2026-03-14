@@ -67,7 +67,7 @@ export default function OnboardingModal({
           >
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0"
+              className="absolute inset-0 pointer-events-none"
               style={{
                 background:
                   "radial-gradient(circle at 20% 0%, rgba(124,92,255,0.18), transparent 45%)",
@@ -75,21 +75,21 @@ export default function OnboardingModal({
             />
 
             <div className="relative z-10">
-              <div className="mb-5 flex items-start justify-between gap-4">
+              <div className="flex items-start justify-between gap-4 mb-5">
                 <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/35">
                   Onboarding
                 </p>
                 <button
                   type="button"
                   onClick={onSkip}
-                  className="text-xs font-medium text-white/45 transition-colors hover:text-white/80"
+                  className="text-xs font-medium transition-colors text-white/45 hover:text-white/80"
                 >
                   Skip
                 </button>
               </div>
 
               <div className="mb-5">
-                <div className="mb-3 flex items-center gap-2">
+                <div className="flex items-center gap-2 mb-3">
                   {steps.map((step, index) => {
                     const isActive = index === currentStep;
                     const isCompleted = index < currentStep;
@@ -97,7 +97,7 @@ export default function OnboardingModal({
                     return (
                       <div
                         key={step.title}
-                        className="flex min-w-0 flex-1 items-center gap-2"
+                        className="flex items-center flex-1 min-w-0 gap-2"
                       >
                         <span
                           className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold transition-all duration-200 ${
@@ -125,7 +125,7 @@ export default function OnboardingModal({
                   })}
                 </div>
 
-                <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
+                <div className="w-full h-1 overflow-hidden rounded-full bg-white/10">
                   <motion.div
                     className="h-full rounded-full bg-[#7C5CFF]"
                     animate={{ width: `${progress}%` }}
@@ -149,7 +149,7 @@ export default function OnboardingModal({
                 </p>
               </motion.div>
 
-              <div className="mt-6 flex items-center justify-between gap-3">
+              <div className="flex items-center justify-between gap-3 mt-6">
                 <button
                   type="button"
                   onClick={() =>
