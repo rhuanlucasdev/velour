@@ -15,6 +15,7 @@ import { useAuth } from "./context/AuthContext";
 import Calendar from "./pages/Calendar";
 import ForgotPassword from "./pages/ForgotPassword";
 import LandingPage from "./pages/LandingPage";
+import Library from "./pages/Library";
 import Login from "./pages/Login";
 import Logout from "./pages/Logout";
 import Pricing from "./pages/Pricing";
@@ -30,12 +31,14 @@ export default function App() {
   const isProfileRoute = pathname === "/profile";
   const isPricingRoute = pathname === "/pricing";
   const isCalendarRoute = pathname === "/calendar";
+  const isLibraryRoute = pathname === "/library";
   const isAppRoute =
     pathname === "/app" ||
     pathname === "/dashboard" ||
     isProfileRoute ||
     isPricingRoute ||
-    isCalendarRoute;
+    isCalendarRoute ||
+    isLibraryRoute;
   const isLoginRoute = pathname === "/login";
   const isRegisterRoute = pathname === "/register";
   const isForgotPasswordRoute = pathname === "/forgot-password";
@@ -152,6 +155,23 @@ export default function App() {
             <>
               <AppLayout>
                 <Calendar />
+              </AppLayout>
+              <CommandPalette />
+              <UpgradeModal />
+              <ToastProvider />
+            </>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/library"
+        element={
+          session ? (
+            <>
+              <AppLayout>
+                <Library />
               </AppLayout>
               <CommandPalette />
               <UpgradeModal />

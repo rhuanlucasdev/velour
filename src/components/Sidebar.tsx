@@ -68,6 +68,35 @@ const navItems: NavItem[] = [
     ),
   },
   {
+    id: "library",
+    label: "Library",
+    href: "/library",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M3 2.2h8.8A1.2 1.2 0 0 1 13 3.4v9.2a1.2 1.2 0 0 1-1.2 1.2H3.9a1.2 1.2 0 0 1-1.2-1.2V3.4A1.2 1.2 0 0 1 3.9 2.2H3Zm0 0v11.6"
+          stroke="currentColor"
+          strokeOpacity="0.72"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M5.6 5h5M5.6 7.6h5M5.6 10.2h3.2"
+          stroke="currentColor"
+          strokeOpacity="0.72"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+  },
+  {
     id: "ideas",
     label: "Ideas",
     href: "/app?tab=ideas",
@@ -275,9 +304,11 @@ export default function Sidebar() {
               ? currentPath === "/profile"
               : item.id === "pricing"
                 ? currentPath === "/pricing"
-                : item.id === "calendar"
-                  ? currentPath === "/calendar"
-                  : isIdeasRoute && currentTab === item.id;
+                : item.id === "library"
+                  ? currentPath === "/library"
+                  : item.id === "calendar"
+                    ? currentPath === "/calendar"
+                    : isIdeasRoute && currentTab === item.id;
           return (
             <button
               key={item.id}

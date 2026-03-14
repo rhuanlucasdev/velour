@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { supabase } from "../../lib/supabase";
 import { canUseFeature, getUserPlan } from "../../lib/plans";
 import { useIdeaStore } from "../../store/ideaStore";
 import { useUpgradeStore } from "../../store/upgradeStore";
@@ -37,6 +38,7 @@ export default function IdeaExpansionModal({
   const updateIdea = useIdeaStore((state) => state.updateIdea);
   const deleteIdea = useIdeaStore((state) => state.deleteIdea);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isSavingToLibrary, setIsSavingToLibrary] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tags = idea.tags ?? [];
 
@@ -87,6 +89,46 @@ export default function IdeaExpansionModal({
 
     await navigator.clipboard.writeText(idea.hook);
     toast("Hook copiado para o clipboard ✨", { type: "success" });
+  };
+
+  const handleSaveHookToLibrary = async () => {
+    if (!idea.hook.trim()) {
+      toast("Write a hook first before saving to library.", { type: "info" });
+      return;
+    }
+
+    if (!user?.id) {
+      toast("You need to be logged in to save hooks.", { type: "error" });
+      return;
+    }
+
+    setIsSavingToLibrary(true);
+
+    try {
+      const primaryCategory =
+        idea.tags
+          .find((tag) => tag.trim().length > 0)
+          ?.trim()
+          .toLowerCase() || "general";
+
+      const { error } = await supabase.from("hooks_library").insert({
+        hook_text: idea.hook.trim(),
+        category: primaryCategory,
+        likes: 0,
+        copies: 0,
+        created_by: user.id,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast("Hook saved to Viral Library 🚀", { type: "success" });
+    } catch {
+      toast("Could not save hook to library", { type: "error" });
+    } finally {
+      setIsSavingToLibrary(false);
+    }
   };
 
   useEffect(() => {
@@ -233,14 +275,25 @@ export default function IdeaExpansionModal({
 
           {canUseAnalytics ? <HookAnalyticsPanel hook={idea.hook} /> : null}
 
-          <button
-            onClick={handleCopyHook}
-            disabled={!idea.hook.trim()}
-            className="inline-flex items-center rounded-lg border border-white/[0.12] bg-[#1A1A1A] px-3 py-2 text-sm text-white/80 transition duration-200 hover:scale-105 hover:border-violet-400/60 hover:shadow-[0_0_16px_rgba(167,139,250,0.22)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:border-white/[0.12] disabled:hover:shadow-none"
-            aria-label="Copy hook"
-          >
-            {canUseExport ? "Copy Hook" : "Copy Hook (Pro)"}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleCopyHook}
+              disabled={!idea.hook.trim()}
+              className="inline-flex items-center rounded-lg border border-white/[0.12] bg-[#1A1A1A] px-3 py-2 text-sm text-white/80 transition duration-200 hover:scale-105 hover:border-violet-400/60 hover:shadow-[0_0_16px_rgba(167,139,250,0.22)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:border-white/[0.12] disabled:hover:shadow-none"
+              aria-label="Copy hook"
+            >
+              {canUseExport ? "Copy Hook" : "Copy Hook (Pro)"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void handleSaveHookToLibrary()}
+              disabled={!idea.hook.trim() || isSavingToLibrary}
+              className="inline-flex items-center rounded-lg border border-[#7C5CFF]/35 bg-[#7C5CFF]/12 px-3 py-2 text-sm text-[#d8cfff] transition-all duration-200 hover:border-[#9f85ff]/45 hover:bg-[#7C5CFF]/20 hover:shadow-[0_0_18px_rgba(124,92,255,0.24)] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSavingToLibrary ? "Saving..." : "Save to Library"}
+            </button>
+          </div>
 
           <HookBlock
             title="Insight"
