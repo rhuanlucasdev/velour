@@ -43,6 +43,62 @@
 }
 
 @layer utilities {
+  @keyframes pricingGradientShift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .pricing-card {
+    position: relative;
+    isolation: isolate;
+    transition:
+      transform 300ms ease,
+      box-shadow 300ms ease,
+      border-color 300ms ease;
+  }
+
+  .pricing-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 1.5rem;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      rgba(168, 85, 247, 0.7),
+      rgba(99, 102, 241, 0.65),
+      rgba(59, 130, 246, 0.6),
+      rgba(168, 85, 247, 0.7)
+    );
+    background-size: 200% 200%;
+    animation: pricingGradientShift 10s ease infinite;
+    opacity: 0;
+    transition: opacity 300ms ease;
+    pointer-events: none;
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  .pricing-card:hover::before {
+    opacity: 1;
+  }
+
+  .pricing-card-popular::before {
+    opacity: 1;
+  }
+}
+
+@layer utilities {
   @keyframes gridShift {
     0% {
       transform: translate3d(0, 0, 0);

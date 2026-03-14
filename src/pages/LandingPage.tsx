@@ -409,17 +409,17 @@ export default function LandingPage() {
             {pricingPlans.map((plan, index) => (
               <article
                 key={plan.name}
-                className={`group relative rounded-3xl border border-white/10 bg-white/5 p-7 backdrop-blur-lg transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_20px_60px_rgba(124,92,255,0.18)] ${
+                className={`pricing-card group relative rounded-3xl border border-white/10 bg-white/5 p-7 backdrop-blur-lg transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-[0_24px_70px_rgba(124,92,255,0.2)] ${
                   index === 1
-                    ? "md:scale-[1.03] md:border-transparent md:bg-gradient-to-br md:from-purple-500/30 md:to-indigo-500/30 md:p-[1px] md:shadow-[0_25px_70px_rgba(124,92,255,0.26)]"
+                    ? "pricing-card-popular md:scale-[1.05] md:shadow-[0_0_80px_rgba(139,92,246,0.3)] md:hover:shadow-[0_0_100px_rgba(139,92,246,0.36)]"
                     : ""
                 }`}
               >
                 <div
-                  className={`h-full rounded-3xl ${
+                  className={`relative h-full rounded-3xl ${
                     index === 1
-                      ? "border border-white/10 bg-[#151226]/95 p-7 backdrop-blur-lg"
-                      : ""
+                      ? "border border-white/10 bg-[linear-gradient(180deg,rgba(28,20,48,0.96),rgba(18,18,18,0.96))] p-7 backdrop-blur-lg"
+                      : "bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.03))]"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -427,7 +427,7 @@ export default function LandingPage() {
                       {plan.name}
                     </p>
                     {plan.badge ? (
-                      <span className="rounded-full border border-purple-300/40 bg-purple-500/20 px-2.5 py-1 text-[11px] font-medium text-purple-100">
+                      <span className="rounded-full border border-purple-300/40 bg-purple-500/20 px-2.5 py-1 text-[11px] font-medium text-purple-100 shadow-[0_0_18px_rgba(139,92,246,0.22)]">
                         {plan.badge}
                       </span>
                     ) : null}
@@ -450,7 +450,7 @@ export default function LandingPage() {
                     href="/app"
                     className={`mt-7 inline-flex w-full items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
                       index === 1
-                        ? "border-transparent bg-[#7C5CFF] text-white hover:bg-[#6B4EE0] hover:shadow-[0_0_24px_rgba(124,92,255,0.38)]"
+                        ? "border-transparent bg-[#7C5CFF] text-white hover:bg-[#6B4EE0] hover:shadow-[0_0_28px_rgba(124,92,255,0.45)]"
                         : "border-white/15 bg-[#171717] text-white/85 hover:border-white/30 hover:bg-[#1F1F1F]"
                     }`}
                   >
