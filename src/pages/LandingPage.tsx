@@ -1,4 +1,5 @@
 import AuroraBackground from "../components/ui/AuroraBackground";
+import LiveHookDemo from "../components/LiveHookDemo";
 import GridBackground from "../components/ui/GridBackground";
 import {
   motion,
@@ -261,6 +262,8 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <LiveHookDemo />
+
         <motion.section
           id="features"
           initial={{ opacity: 0, y: 40 }}
@@ -391,7 +394,7 @@ export default function LandingPage() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
           viewport={{ once: true, amount: 0.2 }}
-          className="mx-auto mb-24 max-w-6xl py-32"
+          className="mx-auto mb-24 max-w-6xl py-12 md:py-16"
         >
           <h2 className="text-3xl font-semibold tracking-tight text-white/95 md:text-4xl">
             Simple Pricing
@@ -400,7 +403,7 @@ export default function LandingPage() {
             Start free and upgrade when you need more power.
           </p>
 
-          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="mt-8 grid grid-cols-1 gap-6 md:mt-9 md:grid-cols-3">
             {pricingPlans.map((plan, index) => (
               <article
                 key={plan.name}
