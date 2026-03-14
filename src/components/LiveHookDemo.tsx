@@ -239,9 +239,13 @@ export default function LiveHookDemo() {
           </div>
 
           {isGenerating ? (
-            <p className="mt-4 text-sm text-white/55">
-              Velour is crafting hooks...
-            </p>
+            <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-sm text-white/60 backdrop-blur-md">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#8B5CF6]/60" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#8B5CF6]" />
+              </span>
+              <span>Velour AI generating hooks</span>
+            </div>
           ) : null}
 
           <div className="mt-6 space-y-3">
