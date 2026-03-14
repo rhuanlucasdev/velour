@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
+import PlanBadge from "./ui/PlanBadge";
 import { useAuth } from "../context/AuthContext";
+import { getUserPlan } from "../lib/plans";
+import { getUserAvatarUrl } from "../utils/userAvatar";
 
 interface NavItem {
   id: string;
@@ -168,18 +172,58 @@ const navItems: NavItem[] = [
       </svg>
     ),
   },
+  {
+    id: "calendar",
+    label: "Calendar",
+    href: "/calendar",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect
+          x="2"
+          y="3"
+          width="12"
+          height="10.5"
+          rx="1.8"
+          stroke="currentColor"
+          strokeOpacity="0.72"
+          strokeWidth="1.2"
+        />
+        <path
+          d="M2 6h12M5 1.8v2.4M11 1.8v2.4"
+          stroke="currentColor"
+          strokeOpacity="0.72"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+  },
 ];
 
 export default function Sidebar() {
   const [isNavigating, setIsNavigating] = useState(false);
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isPro } = useAuth();
+  const { user, profile } = useAuth();
   const currentPath = location.pathname;
   const currentTab = new URLSearchParams(location.search).get("tab") ?? "ideas";
   const isIdeasRoute = currentPath === "/app" || currentPath === "/dashboard";
+  const userPlan = getUserPlan({ user, profile });
+  const isCreator = userPlan === "creator";
+  const visibleNavItems = navItems.filter(
+    (item) => item.id !== "calendar" || isCreator,
+  );
 
-  const avatarUrl = user?.user_metadata.avatar_url as string | undefined;
+  const isPro = userPlan === "pro";
+
+  const avatarUrl = getUserAvatarUrl(user);
   const displayName =
     (user?.user_metadata.full_name as string | undefined) ||
     (user?.user_metadata.name as string | undefined) ||
@@ -207,50 +251,96 @@ export default function Sidebar() {
     setIsNavigating(false);
   }, [currentPath, location.search]);
 
+  useEffect(() => {
+    setAvatarLoadError(false);
+  }, [avatarUrl]);
+
   return (
     <aside className="flex h-full w-[240px] shrink-0 flex-col border-r border-white/[0.06] bg-[#121212] px-3 py-5">
-      <div className="mb-6 px-2 text-[15px] font-semibold tracking-tight text-white/90">
-        Velour
+      <div className="mb-6 flex items-center gap-2 px-2">
+        <img
+          src="/brand/logo-mark.png"
+          alt="Velour"
+          className="h-5 w-5 rounded-sm object-contain"
+        />
+        <span className="text-[15px] font-semibold tracking-tight text-white/90">
+          Velour
+        </span>
       </div>
       <nav className="space-y-1">
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const isActive =
             item.id === "profile"
               ? currentPath === "/profile"
               : item.id === "pricing"
                 ? currentPath === "/pricing"
-                : isIdeasRoute && currentTab === item.id;
+                : item.id === "calendar"
+                  ? currentPath === "/calendar"
+                  : isIdeasRoute && currentTab === item.id;
           return (
             <button
               key={item.id}
               onClick={() => handleNavigate(item.href)}
               className={`
-                w-full rounded-lg px-3 py-2 text-left text-[13.5px] font-medium transition-all duration-150
-                flex items-center gap-2.5
+                group relative w-full overflow-hidden rounded-lg px-3 py-2 text-left text-[13.5px] font-medium
+                flex items-center gap-2.5 transition-all duration-200 ease-out
                 ${
                   isActive
-                    ? "bg-[#7C5CFF]/12 text-[#a78fff]"
-                    : "text-white/45 hover:bg-white/[0.04] hover:text-white/75"
+                    ? "text-[#a78fff]"
+                    : "text-white/45 hover:bg-white/[0.04] hover:text-white/75 hover:translate-x-[2px]"
                 }
               `}
             >
-              <span className={isActive ? "text-[#7C5CFF]" : "text-white/35"}>
+              {isActive ? (
+                <motion.span
+                  layoutId="sidebar-active-bg"
+                  className="absolute inset-0 rounded-lg bg-[#7C5CFF]/12"
+                  transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                />
+              ) : null}
+
+              <span
+                aria-hidden="true"
+                className={`absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-r-full transition-all duration-200 ${
+                  isActive
+                    ? "bg-[#7C5CFF]/90 opacity-100"
+                    : "bg-[#7C5CFF]/70 opacity-0 group-hover:opacity-100"
+                }`}
+              />
+              <span
+                className={`relative z-10 transition-all duration-200 ${
+                  isActive
+                    ? "text-[#7C5CFF]"
+                    : "text-white/35 group-hover:scale-110 group-hover:text-[#8f75ff]"
+                }`}
+              >
                 {item.icon}
               </span>
-              {item.label}
-              {isActive && (
-                <span className="ml-auto h-1 w-1 rounded-full bg-[#7C5CFF]" />
-              )}
+              <span className="relative z-10 transition-transform duration-200 group-hover:translate-x-[1px]">
+                {item.label}
+              </span>
+              <AnimatePresence>
+                {isActive ? (
+                  <motion.span
+                    layoutId="sidebar-active-dot"
+                    initial={{ scale: 0.6, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.6, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 520, damping: 28 }}
+                    className="ml-auto h-1.5 w-1.5 rounded-full bg-[#7C5CFF] shadow-[0_0_10px_rgba(124,92,255,0.8)]"
+                  />
+                ) : null}
+              </AnimatePresence>
             </button>
           );
         })}
       </nav>
 
       <div className="mt-auto border-t border-white/[0.08] px-1 pt-4">
-        {isPro ? (
-          <div className="mb-3 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-3 py-2 text-center text-xs font-medium text-emerald-300">
-            Velour Pro Active
-          </div>
+        {isCreator ? (
+          <PlanBadge variant="creator" label="Velour Creator Active" />
+        ) : isPro ? (
+          <PlanBadge variant="pro" label="Velour Pro Active" />
         ) : (
           <button
             type="button"
@@ -262,11 +352,12 @@ export default function Sidebar() {
         )}
 
         <div className="flex items-center gap-2.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-2">
-          {avatarUrl ? (
+          {avatarUrl && !avatarLoadError ? (
             <img
               src={avatarUrl}
               alt={displayName}
               className="h-8 w-8 rounded-full object-cover"
+              onError={() => setAvatarLoadError(true)}
             />
           ) : (
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#7C5CFF]/20 text-xs font-semibold text-[#c3b3ff]">
@@ -285,8 +376,32 @@ export default function Sidebar() {
         <button
           type="button"
           onClick={handleLogout}
-          className="mt-2 inline-flex w-full items-center justify-center rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2 text-xs font-medium text-white/75 transition-all duration-150 hover:bg-white/[0.07] hover:text-white"
+          className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2 text-xs font-medium text-white/75 transition-all duration-150 hover:border-red-500/35 hover:bg-red-500/10 hover:text-red-200 hover:shadow-[0_0_18px_rgba(239,68,68,0.2)]"
         >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              d="M6 2.5h4A1.5 1.5 0 0 1 11.5 4v8A1.5 1.5 0 0 1 10 13.5H6"
+              stroke="currentColor"
+              strokeOpacity="0.9"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+            />
+            <path
+              d="M9.5 8H2.5M4.5 6L2.354 7.789a.25.25 0 0 0 0 .384L4.5 10"
+              stroke="currentColor"
+              strokeOpacity="0.9"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
           Logout
         </button>
       </div>

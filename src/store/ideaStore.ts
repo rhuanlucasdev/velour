@@ -38,6 +38,7 @@ const createIdeaDefaults = (id = crypto.randomUUID()): Idea => ({
   insight: "",
   twist: "",
   cta: "",
+  scheduledDate: null,
   createdAt: Date.now(),
 });
 
@@ -48,12 +49,13 @@ const parseIdeaContent = (content: string | null) => {
       insight: "",
       twist: "",
       cta: "",
+      scheduledDate: null,
     };
   }
 
   try {
     const parsed = JSON.parse(content) as Partial<
-      Pick<Idea, "hook" | "insight" | "twist" | "cta">
+      Pick<Idea, "hook" | "insight" | "twist" | "cta" | "scheduledDate">
     >;
 
     return {
@@ -61,6 +63,8 @@ const parseIdeaContent = (content: string | null) => {
       insight: parsed.insight ?? "",
       twist: parsed.twist ?? "",
       cta: parsed.cta ?? "",
+      scheduledDate:
+        typeof parsed.scheduledDate === "string" ? parsed.scheduledDate : null,
     };
   } catch {
     return {
@@ -68,6 +72,7 @@ const parseIdeaContent = (content: string | null) => {
       insight: "",
       twist: "",
       cta: "",
+      scheduledDate: null,
     };
   }
 };
@@ -83,6 +88,7 @@ const mapRowToIdea = (row: IdeaRow): Idea => {
     insight: content.insight,
     twist: content.twist,
     cta: content.cta,
+    scheduledDate: content.scheduledDate,
     createdAt: new Date(row.created_at).getTime(),
   };
 };
@@ -96,6 +102,7 @@ const mapIdeaToInsert = (idea: Idea, userId: string) => ({
     insight: idea.insight,
     twist: idea.twist,
     cta: idea.cta,
+    scheduledDate: idea.scheduledDate,
   }),
   tags: idea.tags,
   created_at: new Date(idea.createdAt).toISOString(),
@@ -108,6 +115,7 @@ const mapIdeaToUpdate = (idea: Idea) => ({
     insight: idea.insight,
     twist: idea.twist,
     cta: idea.cta,
+    scheduledDate: idea.scheduledDate,
   }),
   tags: idea.tags,
 });

@@ -12,6 +12,7 @@ import CommandPalette from "./components/command/CommandPalette";
 import Dashboard from "./components/Dashboard";
 import ToastProvider from "./components/ui/ToastProvider";
 import { useAuth } from "./context/AuthContext";
+import Calendar from "./pages/Calendar";
 import ForgotPassword from "./pages/ForgotPassword";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
@@ -28,11 +29,13 @@ export default function App() {
   const pathname = location.pathname;
   const isProfileRoute = pathname === "/profile";
   const isPricingRoute = pathname === "/pricing";
+  const isCalendarRoute = pathname === "/calendar";
   const isAppRoute =
     pathname === "/app" ||
     pathname === "/dashboard" ||
     isProfileRoute ||
-    isPricingRoute;
+    isPricingRoute ||
+    isCalendarRoute;
   const isLoginRoute = pathname === "/login";
   const isRegisterRoute = pathname === "/register";
   const isForgotPasswordRoute = pathname === "/forgot-password";
@@ -134,6 +137,23 @@ export default function App() {
               <AppLayout>
                 <Pricing />
               </AppLayout>
+              <UpgradeModal />
+              <ToastProvider />
+            </>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/calendar"
+        element={
+          session ? (
+            <>
+              <AppLayout>
+                <Calendar />
+              </AppLayout>
+              <CommandPalette />
               <UpgradeModal />
               <ToastProvider />
             </>

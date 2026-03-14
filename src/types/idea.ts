@@ -6,5 +6,6 @@ export type Idea = {
   insight: string;
   twist: string;
   cta: string;
+  scheduledDate: string | null;
   createdAt: number;
 };
