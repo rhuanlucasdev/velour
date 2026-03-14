@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 interface NavItem {
   id: string;
@@ -114,9 +115,22 @@ const navItems: NavItem[] = [
 
 export default function Sidebar() {
   const [active, setActive] = useState("ideas");
+  const { user, logout } = useAuth();
+
+  const avatarUrl = user?.user_metadata.avatar_url as string | undefined;
+  const displayName =
+    (user?.user_metadata.full_name as string | undefined) ||
+    (user?.user_metadata.name as string | undefined) ||
+    user?.email ||
+    "Creator";
+  const fallbackInitial = displayName.charAt(0).toUpperCase();
+
+  const handleLogout = () => {
+    void logout();
+  };
 
   return (
-    <aside className="w-[240px] h-full shrink-0 border-r border-white/[0.06] bg-[#121212] px-3 py-5">
+    <aside className="flex h-full w-[240px] shrink-0 flex-col border-r border-white/[0.06] bg-[#121212] px-3 py-5">
       <div className="mb-6 px-2 text-[15px] font-semibold tracking-tight text-white/90">
         Velour
       </div>
@@ -148,6 +162,37 @@ export default function Sidebar() {
           );
         })}
       </nav>
+
+      <div className="mt-auto border-t border-white/[0.08] px-1 pt-4">
+        <div className="flex items-center gap-2.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-2">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={displayName}
+              className="h-8 w-8 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#7C5CFF]/20 text-xs font-semibold text-[#c3b3ff]">
+              {fallbackInitial}
+            </div>
+          )}
+
+          <div className="min-w-0">
+            <p className="truncate text-xs font-medium text-white/88">
+              {displayName}
+            </p>
+            <p className="truncate text-[11px] text-white/45">Signed in</p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="mt-2 inline-flex w-full items-center justify-center rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2 text-xs font-medium text-white/75 transition-all duration-150 hover:bg-white/[0.07] hover:text-white"
+        >
+          Logout
+        </button>
+      </div>
     </aside>
   );
 }
