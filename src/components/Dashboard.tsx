@@ -29,6 +29,7 @@ import TagPill from "./ideas/TagPill";
 import { useAuth } from "../context/AuthContext";
 import { FREE_MAX_IDEAS } from "../constants/freemium";
 import { useUpgradeStore } from "../store/upgradeStore";
+import OnboardingModal from "./onboarding/OnboardingModal";
 
 const getBentoClasses = (index: number) => {
   if (index === 0) {
@@ -109,6 +110,7 @@ export default function Dashboard() {
       : "ideas";
   const [expandedIdeaId, setExpandedIdeaId] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const ideas = useIdeaStore((state) => state.ideas);
   const isLoading = useIdeaStore((state) => state.isLoading);
   const lastCreatedIdeaId = useIdeaStore((state) => state.lastCreatedIdeaId);
@@ -161,6 +163,10 @@ export default function Dashboard() {
           ? "Loading your ideas..."
           : `${ideas.length} ideas — sorted by latest`;
 
+  const onboardingStorageKey = user?.id
+    ? `velour_onboarding_seen_${user.id}`
+    : null;
+
   const handleDragStart = (event: DragStartEvent) => {
     setActiveDragId(String(event.active.id));
   };
@@ -211,6 +217,30 @@ export default function Dashboard() {
     setSearchParams({ tab: "ideas" }, { replace: true });
   }, [activeTabParam, setSearchParams]);
 
+  useEffect(() => {
+    if (
+      activeTab !== "ideas" ||
+      !user?.id ||
+      isLoading ||
+      !onboardingStorageKey
+    ) {
+      return;
+    }
+
+    if (ideas.length > 0) {
+      localStorage.setItem(onboardingStorageKey, "true");
+      setShowOnboarding(false);
+      return;
+    }
+
+    const hasSeenOnboarding =
+      localStorage.getItem(onboardingStorageKey) === "true";
+
+    if (!hasSeenOnboarding) {
+      setShowOnboarding(true);
+    }
+  }, [activeTab, ideas.length, isLoading, onboardingStorageKey, user?.id]);
+
   const handleCreateIdea = async () => {
     if (!user?.id) {
       toast("You need to be logged in to create ideas", { type: "error" });
@@ -231,6 +261,23 @@ export default function Dashboard() {
 
     setExpandedIdeaId(createdId);
     toast("Idea created ✅", { type: "success" });
+  };
+
+  const handleSkipOnboarding = () => {
+    if (onboardingStorageKey) {
+      localStorage.setItem(onboardingStorageKey, "true");
+    }
+
+    setShowOnboarding(false);
+  };
+
+  const handleStartCreatingFromOnboarding = async () => {
+    if (onboardingStorageKey) {
+      localStorage.setItem(onboardingStorageKey, "true");
+    }
+
+    setShowOnboarding(false);
+    await handleCreateIdea();
   };
 
   return (
@@ -348,6 +395,12 @@ export default function Dashboard() {
           onClose={() => setExpandedIdeaId(null)}
         />
       )}
+
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onSkip={handleSkipOnboarding}
+        onStartCreating={() => void handleStartCreatingFromOnboarding()}
+      />
     </Container>
   );
 }
