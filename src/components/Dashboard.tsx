@@ -21,6 +21,7 @@ import { useIdeaStore } from "../store/ideaStore";
 import { toast } from "../utils/toast";
 import Container from "./ui/Container";
 import SectionHeader from "./ui/SectionHeader";
+import Button from "./ui/Button";
 import { useMemo, useState } from "react";
 import Card from "./ui/Card";
 import TagPill from "./ideas/TagPill";
@@ -137,7 +138,7 @@ export default function Dashboard() {
     setActiveDragId(null);
   };
 
-  const handleCreateFromEmptyState = () => {
+  const handleCreateIdea = () => {
     const createdId = createIdea();
     setExpandedIdeaId(createdId);
     toast("Idea created ✅", { type: "success" });
@@ -148,12 +149,17 @@ export default function Dashboard() {
       <SectionHeader
         title="Ideas"
         subtitle={`${ideas.length} ideas — sorted by latest`}
+        actions={
+          <Button size="sm" variant="outline" onClick={handleCreateIdea}>
+            New Idea
+          </Button>
+        }
         className="mb-6"
       />
 
       {/* Ideas grid */}
       {ideas.length === 0 ? (
-        <EmptyState onCreate={handleCreateFromEmptyState} />
+        <EmptyState onCreate={handleCreateIdea} />
       ) : (
         <DndContext
           sensors={sensors}
