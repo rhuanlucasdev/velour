@@ -598,31 +598,41 @@ export default function LandingPage() {
           viewport={{ once: true, amount: 0.2 }}
           className="mb-24"
         >
-          <div className="mx-auto max-w-3xl rounded-3xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-xl md:p-10">
-            <h2 className="text-2xl font-semibold tracking-tight text-white/95 md:text-3xl">
-              Join the Velour Creator Beta
-            </h2>
-            <p className="mt-3 text-sm text-white/60 md:text-base">
-              Get early access features and updates.
-            </p>
+          <div className="relative mx-auto max-w-3xl overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-xl shadow-[0_24px_70px_rgba(0,0,0,0.4),inset_0_0_30px_rgba(139,92,246,0.1)] md:p-10">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,0.22),rgba(139,92,246,0)_52%)]" />
+            <div className="pointer-events-none absolute inset-0 rounded-3xl border border-white/[0.06]" />
 
-            <form className="mx-auto mt-7 flex w-full max-w-xl flex-col gap-3 sm:flex-row">
-              <input
-                type="email"
-                placeholder="you@example.com"
-                className="w-full rounded-xl border border-white/10 bg-[#121212]/70 px-4 py-3 text-sm text-white/90 placeholder:text-white/40 outline-none transition-all duration-200 focus:border-purple-400/70 focus:shadow-[0_0_0_3px_rgba(124,92,255,0.22),0_0_24px_rgba(124,92,255,0.25)]"
-              />
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-xl border border-transparent bg-[#7C5CFF] px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#6B4EE0] hover:shadow-[0_0_24px_rgba(124,92,255,0.38)]"
-              >
-                Join Beta
-              </button>
-            </form>
+            <div className="relative z-10">
+              <span className="inline-flex items-center rounded-full border border-purple-300/30 bg-purple-500/15 px-3 py-1 text-[11px] font-medium tracking-[0.06em] text-purple-100/90">
+                LIMITED BETA ACCESS
+              </span>
 
-            <p className="mt-3 text-xs text-white/45">
-              No spam. Just product updates.
-            </p>
+              <h2 className="mt-4 text-2xl font-semibold tracking-tight text-white/95 md:text-3xl">
+                Join the Velour Creator Beta
+              </h2>
+              <p className="mt-3 text-sm text-white/60 md:text-base">
+                Get early access features and updates.
+              </p>
+
+              <form className="mx-auto mt-7 flex w-full max-w-xl flex-col gap-3 rounded-2xl border border-white/[0.08] bg-black/20 p-2.5 sm:flex-row">
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  className="w-full rounded-xl border border-white/10 bg-[#121212]/75 px-4 py-3 text-sm text-white/90 placeholder:text-white/40 outline-none transition-all duration-200 focus:border-purple-400/70 focus:shadow-[0_0_0_3px_rgba(124,92,255,0.24),0_0_30px_rgba(124,92,255,0.28)]"
+                />
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-transparent bg-[#7C5CFF] px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#6B4EE0] hover:shadow-[0_0_28px_rgba(124,92,255,0.45)]"
+                >
+                  Join Beta
+                  <span aria-hidden="true">→</span>
+                </button>
+              </form>
+
+              <p className="mt-3 text-xs text-white/45">
+                No spam. Just product updates.
+              </p>
+            </div>
           </div>
         </motion.section>
 
