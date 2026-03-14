@@ -39,7 +39,7 @@ export default function IdeaExpansionModal({
       clearTimeout(saveTimeoutRef.current);
     }
 
-    updateIdea(idea.id, patch);
+    void updateIdea(idea.id, patch);
 
     saveTimeoutRef.current = setTimeout(() => {
       setAutosaveStatus("saved");
@@ -121,7 +121,7 @@ export default function IdeaExpansionModal({
         <div className="mb-6 flex items-center justify-between">
           <button
             onClick={() => {
-              deleteIdea(idea.id);
+              void deleteIdea(idea.id);
               toast("Idea deleted 🗑️", { type: "info" });
               onClose();
             }}

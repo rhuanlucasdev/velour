@@ -4,6 +4,7 @@ import IdeaExpansionModal from "../ideas/IdeaExpansionModal";
 import TagPill from "../ideas/TagPill";
 import { useIdeaStore } from "../../store/ideaStore";
 import { toast } from "../../utils/toast";
+import { useAuth } from "../../context/AuthContext";
 
 type CommandItem =
   | {
@@ -11,7 +12,7 @@ type CommandItem =
       type: "action";
       label: string;
       description: string;
-      run: () => void;
+      run: () => void | Promise<void>;
     }
   | {
       id: string;
@@ -22,6 +23,7 @@ type CommandItem =
     };
 
 export default function CommandPalette() {
+  const { user } = useAuth();
   const ideas = useIdeaStore((state) => state.ideas);
   const createIdea = useIdeaStore((state) => state.createIdea);
 
@@ -48,8 +50,18 @@ export default function CommandPalette() {
         label: "Create New Idea",
         description: "Add a fresh idea card to your board",
         run: () => {
-          createIdea();
-          toast("Idea created ✅", { type: "success" });
+          if (!user?.id) {
+            toast("You need to be logged in to create ideas", {
+              type: "error",
+            });
+            return;
+          }
+
+          void createIdea(user.id).then((createdId) => {
+            if (createdId) {
+              toast("Idea created ✅", { type: "success" });
+            }
+          });
           setIsOpen(false);
         },
       },
@@ -73,7 +85,7 @@ export default function CommandPalette() {
         },
       },
     ],
-    [createIdea],
+    [createIdea, user?.id],
   );
 
   const commandItems = useMemo<CommandItem[]>(() => {

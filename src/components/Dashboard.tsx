@@ -22,9 +22,10 @@ import { toast } from "../utils/toast";
 import Container from "./ui/Container";
 import SectionHeader from "./ui/SectionHeader";
 import Button from "./ui/Button";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Card from "./ui/Card";
 import TagPill from "./ideas/TagPill";
+import { useAuth } from "../context/AuthContext";
 
 const getBentoClasses = (index: number) => {
   if (index === 0) {
@@ -94,12 +95,16 @@ function SortableIdeaItem({
 }
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [expandedIdeaId, setExpandedIdeaId] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const ideas = useIdeaStore((state) => state.ideas);
+  const isLoading = useIdeaStore((state) => state.isLoading);
   const lastCreatedIdeaId = useIdeaStore((state) => state.lastCreatedIdeaId);
   const createIdea = useIdeaStore((state) => state.createIdea);
+  const loadIdeas = useIdeaStore((state) => state.loadIdeas);
   const reorderIdeas = useIdeaStore((state) => state.reorderIdeas);
+  const resetIdeas = useIdeaStore((state) => state.resetIdeas);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -138,8 +143,27 @@ export default function Dashboard() {
     setActiveDragId(null);
   };
 
-  const handleCreateIdea = () => {
-    const createdId = createIdea();
+  useEffect(() => {
+    if (!user?.id) {
+      resetIdeas();
+      return;
+    }
+
+    void loadIdeas(user.id);
+  }, [loadIdeas, resetIdeas, user?.id]);
+
+  const handleCreateIdea = async () => {
+    if (!user?.id) {
+      toast("You need to be logged in to create ideas", { type: "error" });
+      return;
+    }
+
+    const createdId = await createIdea(user.id);
+
+    if (!createdId) {
+      return;
+    }
+
     setExpandedIdeaId(createdId);
     toast("Idea created ✅", { type: "success" });
   };
@@ -148,12 +172,16 @@ export default function Dashboard() {
     <Container className="py-8">
       <SectionHeader
         title="Ideas"
-        subtitle={`${ideas.length} ideas — sorted by latest`}
+        subtitle={
+          isLoading
+            ? "Loading your ideas..."
+            : `${ideas.length} ideas — sorted by latest`
+        }
         actions={
           <Button
             size="sm"
             variant="primary"
-            onClick={handleCreateIdea}
+            onClick={() => void handleCreateIdea()}
             className="group rounded-lg px-3.5 hover:scale-105 hover:shadow-[0_0_22px_rgba(124,92,255,0.4)]"
           >
             <svg
@@ -177,8 +205,12 @@ export default function Dashboard() {
       />
 
       {/* Ideas grid */}
-      {ideas.length === 0 ? (
-        <EmptyState onCreate={handleCreateIdea} />
+      {isLoading ? (
+        <div className="rounded-2xl border border-white/[0.08] bg-[#121212] p-6 text-sm text-white/55">
+          Loading your ideas...
+        </div>
+      ) : ideas.length === 0 ? (
+        <EmptyState onCreate={() => void handleCreateIdea()} />
       ) : (
         <DndContext
           sensors={sensors}

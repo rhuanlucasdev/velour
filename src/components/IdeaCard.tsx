@@ -66,7 +66,7 @@ export default function IdeaCard({
     const safeTitle = newTitle.length > 0 ? newTitle : title;
 
     if (safeTitle !== title) {
-      updateIdea(id, { title: safeTitle });
+      void updateIdea(id, { title: safeTitle });
     }
 
     setTitleValue(safeTitle);
@@ -137,7 +137,7 @@ export default function IdeaCard({
         <button
           onClick={(event) => {
             event.stopPropagation();
-            deleteIdea(id);
+            void deleteIdea(id);
             toast("Idea deleted 🗑️", { type: "info" });
           }}
           aria-label="Delete idea"
