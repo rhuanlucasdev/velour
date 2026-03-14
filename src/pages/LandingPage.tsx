@@ -10,7 +10,12 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
-import { useState, type MouseEvent as ReactMouseEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 
 const features = [
   {
@@ -145,6 +150,7 @@ function FeatureCard({ title, description, className = "" }: FeatureCardProps) {
 
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const landingRef = useRef<HTMLDivElement | null>(null);
   const { scrollY } = useScroll();
   const previewX = useMotionValue(0.5);
   const previewY = useMotionValue(0.5);
@@ -174,6 +180,43 @@ export default function LandingPage() {
     setIsScrolled(latest > 18);
   });
 
+  useEffect(() => {
+    let frameId = 0;
+    let latestX = window.innerWidth / 2;
+    let latestY = window.innerHeight / 2;
+
+    const applySpotlightPosition = () => {
+      frameId = 0;
+
+      if (!landingRef.current) {
+        return;
+      }
+
+      landingRef.current.style.setProperty("--spotlight-x", `${latestX}px`);
+      landingRef.current.style.setProperty("--spotlight-y", `${latestY}px`);
+    };
+
+    const handleMouseMove = (event: MouseEvent) => {
+      latestX = event.clientX;
+      latestY = event.clientY;
+
+      if (!frameId) {
+        frameId = window.requestAnimationFrame(applySpotlightPosition);
+      }
+    };
+
+    applySpotlightPosition();
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
+  }, []);
+
   const handlePreviewMouseMove = (event: ReactMouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const px = (event.clientX - rect.left) / rect.width;
@@ -193,8 +236,19 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#0A0A0A] text-white">
+    <div
+      ref={landingRef}
+      className="relative min-h-screen bg-[#0A0A0A] text-white"
+    >
       <GridBackground />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-[1] transition-opacity duration-300"
+        style={{
+          background:
+            "radial-gradient(circle 200px at var(--spotlight-x, 50%) var(--spotlight-y, 50%), rgba(139,92,246,0.15), transparent 80%)",
+        }}
+      />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-[0.03] mix-blend-overlay"
@@ -409,7 +463,7 @@ export default function LandingPage() {
             {pricingPlans.map((plan, index) => (
               <article
                 key={plan.name}
-                className={`pricing-card group relative rounded-3xl border border-white/10 bg-white/5 p-7 backdrop-blur-lg transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-[0_24px_70px_rgba(124,92,255,0.2)] ${
+                className={`pricing-card group relative rounded-3xl border border-white/10 bg-white/5 p-[1px] backdrop-blur-lg transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-[0_24px_70px_rgba(124,92,255,0.2)] ${
                   index === 1
                     ? "pricing-card-popular md:scale-[1.05] md:shadow-[0_0_80px_rgba(139,92,246,0.3)] md:hover:shadow-[0_0_100px_rgba(139,92,246,0.36)]"
                     : ""
@@ -419,7 +473,7 @@ export default function LandingPage() {
                   className={`relative h-full rounded-3xl ${
                     index === 1
                       ? "border border-white/10 bg-[linear-gradient(180deg,rgba(28,20,48,0.96),rgba(18,18,18,0.96))] p-7 backdrop-blur-lg"
-                      : "bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.03))]"
+                      : "border border-white/[0.08] bg-[linear-gradient(180deg,rgba(38,38,38,0.9),rgba(28,28,28,0.86))] p-7 backdrop-blur-md"
                   }`}
                 >
                   <div className="flex items-center justify-between">
