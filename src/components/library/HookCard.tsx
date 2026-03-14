@@ -13,13 +13,19 @@ export interface LibraryHookItem {
 interface HookCardProps {
   hook: LibraryHookItem;
   onCopy: (hook: LibraryHookItem) => Promise<void>;
+  onLike: (hook: LibraryHookItem) => Promise<void>;
   isCopying?: boolean;
+  isLiking?: boolean;
+  isLiked?: boolean;
 }
 
 export default function HookCard({
   hook,
   onCopy,
+  onLike,
   isCopying = false,
+  isLiking = false,
+  isLiked = false,
 }: HookCardProps) {
   return (
     <motion.article
@@ -43,14 +49,23 @@ export default function HookCard({
           {hook.hook_text}
         </p>
 
-        <div className="flex items-center justify-between gap-2 mt-4">
+        <div className="mt-4 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-xs text-white/55">
-            <span className="inline-flex items-center gap-1 rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-1">
+            <button
+              type="button"
+              onClick={() => void onLike(hook)}
+              disabled={isLiking || isLiked}
+              className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 transition-all duration-150 disabled:cursor-not-allowed ${
+                isLiked
+                  ? "border-pink-400/35 bg-pink-500/12 text-pink-200"
+                  : "border-white/[0.08] bg-white/[0.03] text-white/75 hover:border-pink-400/35 hover:bg-pink-500/10 hover:text-pink-200"
+              }`}
+            >
               <svg
                 width="12"
                 height="12"
                 viewBox="0 0 16 16"
-                fill="none"
+                fill={isLiked ? "currentColor" : "none"}
                 aria-hidden="true"
               >
                 <path
@@ -58,11 +73,10 @@ export default function HookCard({
                   stroke="currentColor"
                   strokeOpacity="0.8"
                   strokeWidth="1.1"
-                  fill="none"
                 />
               </svg>
-              {hook.likes}
-            </span>
+              {isLiking ? "..." : hook.likes}
+            </button>
             <span className="text-white/35">{hook.category}</span>
           </div>
 

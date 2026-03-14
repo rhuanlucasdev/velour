@@ -5,12 +5,16 @@ import HookCard, { type LibraryHookItem } from "../components/library/HookCard";
 import SectionHeader from "../components/ui/SectionHeader";
 import Container from "../components/ui/Container";
 
+const LIKED_HOOKS_STORAGE_KEY = "velour_liked_hooks";
+
 export default function Library() {
   const [trendingHooks, setTrendingHooks] = useState<LibraryHookItem[]>([]);
   const [topHooks, setTopHooks] = useState<LibraryHookItem[]>([]);
   const [recentHooks, setRecentHooks] = useState<LibraryHookItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [copyingHookId, setCopyingHookId] = useState<string | null>(null);
+  const [likingHookId, setLikingHookId] = useState<string | null>(null);
+  const [likedHookIds, setLikedHookIds] = useState<Set<string>>(new Set());
 
   const allHookIds = useMemo(() => {
     const ids = new Set<string>();
@@ -65,6 +69,22 @@ export default function Library() {
     void loadHooks();
   }, []);
 
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(LIKED_HOOKS_STORAGE_KEY);
+
+      if (!raw) {
+        setLikedHookIds(new Set());
+        return;
+      }
+
+      const parsed = JSON.parse(raw) as string[];
+      setLikedHookIds(new Set(Array.isArray(parsed) ? parsed : []));
+    } catch {
+      setLikedHookIds(new Set());
+    }
+  }, []);
+
   const patchCopiesInSections = (hookId: string) => {
     const patchList = (list: LibraryHookItem[]) =>
       list.map((entry) =>
@@ -74,6 +94,31 @@ export default function Library() {
     setTrendingHooks((current) => patchList(current));
     setTopHooks((current) => patchList(current));
     setRecentHooks((current) => patchList(current));
+  };
+
+  const patchLikesInSections = (hookId: string) => {
+    const patchList = (list: LibraryHookItem[]) =>
+      list.map((entry) =>
+        entry.id === hookId ? { ...entry, likes: entry.likes + 1 } : entry,
+      );
+
+    setTrendingHooks((current) => patchList(current));
+    setTopHooks((current) => patchList(current));
+    setRecentHooks((current) => patchList(current));
+  };
+
+  const persistLikedHook = (hookId: string) => {
+    setLikedHookIds((current) => {
+      const next = new Set(current);
+      next.add(hookId);
+
+      localStorage.setItem(
+        LIKED_HOOKS_STORAGE_KEY,
+        JSON.stringify(Array.from(next)),
+      );
+
+      return next;
+    });
   };
 
   const handleCopyHook = async (hook: LibraryHookItem) => {
@@ -96,6 +141,34 @@ export default function Library() {
       toast("Could not copy this hook", { type: "error" });
     } finally {
       setCopyingHookId(null);
+    }
+  };
+
+  const handleLikeHook = async (hook: LibraryHookItem) => {
+    if (likedHookIds.has(hook.id)) {
+      toast("You already liked this hook", { type: "info" });
+      return;
+    }
+
+    try {
+      setLikingHookId(hook.id);
+
+      const { error } = await supabase
+        .from("hooks_library")
+        .update({ likes: hook.likes + 1 })
+        .eq("id", hook.id);
+
+      if (error) {
+        throw error;
+      }
+
+      patchLikesInSections(hook.id);
+      persistLikedHook(hook.id);
+      toast("Hook liked 💜", { type: "success" });
+    } catch {
+      toast("Could not like this hook", { type: "error" });
+    } finally {
+      setLikingHookId(null);
     }
   };
 
@@ -127,7 +200,10 @@ export default function Library() {
               key={`${title}-${hook.id}`}
               hook={hook}
               onCopy={handleCopyHook}
+              onLike={handleLikeHook}
               isCopying={copyingHookId === hook.id}
+              isLiking={likingHookId === hook.id}
+              isLiked={likedHookIds.has(hook.id)}
             />
           ))}
         </div>

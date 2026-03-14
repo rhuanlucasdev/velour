@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
@@ -40,8 +40,15 @@ export default function IdeaExpansionModal({
   const deleteIdea = useIdeaStore((state) => state.deleteIdea);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSavingToLibrary, setIsSavingToLibrary] = useState(false);
+  const [isInsightOpen, setIsInsightOpen] = useState(false);
+  const [isTwistOpen, setIsTwistOpen] = useState(false);
+  const [isCtaOpen, setIsCtaOpen] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tags = idea.tags ?? [];
+
+  const hasInsight = idea.insight.trim().length > 0;
+  const hasTwist = idea.twist.trim().length > 0;
+  const hasCta = idea.cta.trim().length > 0;
 
   const updateIdeaWithAutosave = (
     patch: Partial<Omit<Idea, "id" | "createdAt">>,
@@ -151,6 +158,107 @@ export default function IdeaExpansionModal({
     };
   }, []);
 
+  useEffect(() => {
+    if (hasInsight) {
+      setIsInsightOpen(true);
+    }
+  }, [hasInsight]);
+
+  useEffect(() => {
+    if (hasTwist) {
+      setIsTwistOpen(true);
+    }
+  }, [hasTwist]);
+
+  useEffect(() => {
+    if (hasCta) {
+      setIsCtaOpen(true);
+    }
+  }, [hasCta]);
+
+  const renderCollapsibleBlock = ({
+    title,
+    value,
+    placeholder,
+    isOpen,
+    onToggle,
+    onChange,
+  }: {
+    title: string;
+    value: string;
+    placeholder: string;
+    isOpen: boolean;
+    onToggle: () => void;
+    onChange: (value: string) => void;
+  }) => {
+    const isFilled = value.trim().length > 0;
+
+    return (
+      <section className="rounded-xl">
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex w-full items-center justify-between rounded-lg px-1 py-1.5 text-left"
+          aria-expanded={isOpen}
+        >
+          <div className="flex items-center gap-2">
+            <h3 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-white/55">
+              {title}
+            </h3>
+            {isFilled ? (
+              <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+                Filled
+              </span>
+            ) : null}
+          </div>
+
+          <motion.span
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="text-white/45"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 16 16"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M4 6.5L8 10.5L12 6.5"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </motion.span>
+        </button>
+
+        <AnimatePresence initial={false}>
+          {isOpen ? (
+            <motion.div
+              key={`${title}-content`}
+              initial={{ opacity: 0, height: 0, y: -4 }}
+              animate={{ opacity: 1, height: "auto", y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -4 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
+              className="overflow-hidden pt-2"
+            >
+              <HookBlock
+                title={title}
+                value={value}
+                onChange={onChange}
+                placeholder={placeholder}
+                hideTitle
+              />
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+      </section>
+    );
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-sm"
@@ -228,8 +336,25 @@ export default function IdeaExpansionModal({
           </Button>
         </div>
 
-        <div className="space-y-5">
-          <section className="rounded-xl border border-white/[0.06] bg-[#1C1C1C]/70 p-4">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: { staggerChildren: 0.035 },
+            },
+          }}
+          className="space-y-5"
+        >
+          <motion.section
+            variants={{
+              hidden: { opacity: 0, y: 8 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            className="rounded-xl border border-white/[0.06] bg-[#1C1C1C]/70 p-4"
+          >
             <h3 className="mb-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-white/45">
               Tags
             </h3>
@@ -239,16 +364,30 @@ export default function IdeaExpansionModal({
               ))}
               <TagInput onAddTag={handleAddTag} />
             </div>
-          </section>
+          </motion.section>
 
-          <HookTemplatePicker ideaId={idea.id} />
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 8 },
+              visible: { opacity: 1, y: 0 },
+            }}
+          >
+            <HookTemplatePicker ideaId={idea.id} />
+          </motion.div>
 
-          <HookBlock
-            title="Hook"
-            value={idea.hook}
-            onChange={(value) => updateIdeaWithAutosave({ hook: value })}
-            placeholder="Capture the opening hook..."
-          />
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 8 },
+              visible: { opacity: 1, y: 0 },
+            }}
+          >
+            <HookBlock
+              title="Hook"
+              value={idea.hook}
+              onChange={(value) => updateIdeaWithAutosave({ hook: value })}
+              placeholder="Capture the opening hook..."
+            />
+          </motion.div>
 
           {canUseHookScore ? (
             <HookStrengthIndicator hook={idea.hook} />
@@ -274,51 +413,106 @@ export default function IdeaExpansionModal({
             </div>
           )}
 
-          {canUseAnalytics ? <HookAnalyticsPanel hook={idea.hook} /> : null}
+          {canUseAnalytics ? (
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 8 },
+                visible: { opacity: 1, y: 0 },
+              }}
+            >
+              <HookAnalyticsPanel hook={idea.hook} />
+            </motion.div>
+          ) : null}
 
-          <div className="flex flex-wrap items-center gap-2">
-            <button
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 8 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            className="flex flex-wrap items-center gap-2"
+          >
+            <motion.button
               onClick={handleCopyHook}
               disabled={!idea.hook.trim()}
+              whileHover={{ y: -1, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               className="inline-flex items-center rounded-lg border border-white/[0.12] bg-[#1A1A1A] px-3 py-2 text-sm text-white/80 transition duration-200 hover:scale-105 hover:border-violet-400/60 hover:shadow-[0_0_16px_rgba(167,139,250,0.22)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:border-white/[0.12] disabled:hover:shadow-none"
               aria-label="Copy hook"
             >
               {canUseExport ? "Copy Hook" : "Copy Hook (Pro)"}
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
               type="button"
               onClick={() => void handleSaveHookToLibrary()}
               disabled={!idea.hook.trim() || isSavingToLibrary}
+              whileHover={{ y: -1, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               className="inline-flex items-center rounded-lg border border-[#7C5CFF]/35 bg-[#7C5CFF]/12 px-3 py-2 text-sm text-[#d8cfff] transition-all duration-200 hover:border-[#9f85ff]/45 hover:bg-[#7C5CFF]/20 hover:shadow-[0_0_18px_rgba(124,92,255,0.24)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSavingToLibrary ? "Saving..." : "Save to Library"}
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
 
-          <HookShareCard hook={idea.hook} />
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 8 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            whileHover={{ y: -1 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          >
+            <HookShareCard hook={idea.hook} />
+          </motion.div>
 
-          <HookBlock
-            title="Insight"
-            value={idea.insight}
-            onChange={(value) => updateIdeaWithAutosave({ insight: value })}
-            placeholder="Describe the core insight..."
-          />
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 8 },
+              visible: { opacity: 1, y: 0 },
+            }}
+          >
+            {renderCollapsibleBlock({
+              title: "Insight",
+              value: idea.insight,
+              placeholder: "Describe the core insight...",
+              isOpen: isInsightOpen,
+              onToggle: () => setIsInsightOpen((current) => !current),
+              onChange: (value) => updateIdeaWithAutosave({ insight: value }),
+            })}
+          </motion.div>
 
-          <HookBlock
-            title="Twist"
-            value={idea.twist}
-            onChange={(value) => updateIdeaWithAutosave({ twist: value })}
-            placeholder="Add an unexpected angle..."
-          />
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 8 },
+              visible: { opacity: 1, y: 0 },
+            }}
+          >
+            {renderCollapsibleBlock({
+              title: "Twist",
+              value: idea.twist,
+              placeholder: "Add an unexpected angle...",
+              isOpen: isTwistOpen,
+              onToggle: () => setIsTwistOpen((current) => !current),
+              onChange: (value) => updateIdeaWithAutosave({ twist: value }),
+            })}
+          </motion.div>
 
-          <HookBlock
-            title="CTA"
-            value={idea.cta}
-            onChange={(value) => updateIdeaWithAutosave({ cta: value })}
-            placeholder="Define the call to action..."
-          />
-        </div>
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 8 },
+              visible: { opacity: 1, y: 0 },
+            }}
+          >
+            {renderCollapsibleBlock({
+              title: "CTA",
+              value: idea.cta,
+              placeholder: "Define the call to action...",
+              isOpen: isCtaOpen,
+              onToggle: () => setIsCtaOpen((current) => !current),
+              onChange: (value) => updateIdeaWithAutosave({ cta: value }),
+            })}
+          </motion.div>
+        </motion.div>
       </motion.div>
 
       {isPreviewOpen && (

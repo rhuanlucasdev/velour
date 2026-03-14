@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { calculateHookScore } from "../../utils/calculateHookScore";
+import { motion } from "framer-motion";
+import { analyzeHook } from "../../lib/hookAnalytics";
 import { toast } from "../../utils/toast";
 
 interface HookShareCardProps {
@@ -40,7 +41,7 @@ const wrapText = (
 
 export default function HookShareCard({ hook }: HookShareCardProps) {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const score = useMemo(() => calculateHookScore(hook), [hook]);
+  const score = useMemo(() => analyzeHook(hook).hookScore, [hook]);
 
   const shareLink = useMemo(() => {
     const baseUrl = window.location.origin;
@@ -104,14 +105,6 @@ export default function HookShareCard({ hook }: HookShareCardProps) {
     ctx.fillStyle = "rgba(226, 217, 255, 0.95)";
     ctx.font = "600 30px Inter, sans-serif";
     ctx.fillText("Velour", 154, 128);
-
-    ctx.fillStyle = "rgba(189, 172, 255, 0.9)";
-    ctx.font = "600 24px Inter, sans-serif";
-    ctx.fillText("Hook Score", 920, 130);
-
-    ctx.fillStyle = "rgba(255,255,255,0.95)";
-    ctx.font = "700 56px Inter, sans-serif";
-    ctx.fillText(String(score), 1035, 132);
 
     const hookText = hook.trim() || "Your viral hook goes here...";
     ctx.fillStyle = "rgba(255,255,255,0.96)";
@@ -202,8 +195,17 @@ export default function HookShareCard({ hook }: HookShareCardProps) {
   };
 
   return (
-    <section className="rounded-xl border border-white/[0.08] bg-[#161616]/70 p-4 backdrop-blur-xl">
-      <div className="relative overflow-hidden rounded-xl border border-[#7C5CFF]/24 bg-gradient-to-br from-[#171429] via-[#141426] to-[#1A1430] p-4 shadow-[0_16px_42px_rgba(0,0,0,0.45),0_0_24px_rgba(124,92,255,0.22)]">
+    <motion.section
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.22, ease: "easeOut" }}
+      className="rounded-xl border border-white/[0.08] bg-[#161616]/70 p-4 backdrop-blur-xl"
+    >
+      <motion.div
+        whileHover={{ y: -1, scale: 1.002 }}
+        transition={{ duration: 0.18, ease: "easeOut" }}
+        className="relative overflow-hidden rounded-xl border border-[#7C5CFF]/24 bg-gradient-to-br from-[#171429] via-[#141426] to-[#1A1430] p-4 shadow-[0_16px_42px_rgba(0,0,0,0.45),0_0_24px_rgba(124,92,255,0.22)]"
+      >
         <div
           aria-hidden="true"
           className="absolute inset-0 pointer-events-none"
@@ -226,7 +228,7 @@ export default function HookShareCard({ hook }: HookShareCardProps) {
           </div>
 
           <span className="rounded-full border border-[#A48DFF]/35 bg-[#7C5CFF]/15 px-2.5 py-1 text-[11px] font-semibold text-[#D9CEFF]">
-            Score {score}
+            Hook Score · {score}
           </span>
         </div>
 
@@ -237,42 +239,50 @@ export default function HookShareCard({ hook }: HookShareCardProps) {
         <p className="relative z-10 mt-5 text-[11px] text-white/45">
           Generated with Velour
         </p>
-      </div>
+      </motion.div>
 
       <div className="flex flex-wrap gap-2 mt-3">
-        <button
+        <motion.button
           type="button"
           onClick={handleShareTwitter}
+          whileHover={{ y: -1, scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           className="rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 py-2 text-xs font-medium text-white/80 transition-all duration-150 hover:border-[#7C5CFF]/35 hover:bg-[#7C5CFF]/14"
         >
           Share to Twitter
-        </button>
+        </motion.button>
 
-        <button
+        <motion.button
           type="button"
           onClick={handleShareLinkedIn}
+          whileHover={{ y: -1, scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           className="rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 py-2 text-xs font-medium text-white/80 transition-all duration-150 hover:border-[#7C5CFF]/35 hover:bg-[#7C5CFF]/14"
         >
           Share to LinkedIn
-        </button>
+        </motion.button>
 
-        <button
+        <motion.button
           type="button"
           onClick={() => void handleDownloadImage()}
           disabled={isGeneratingImage}
+          whileHover={{ y: -1, scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           className="rounded-lg border border-[#7C5CFF]/35 bg-[#7C5CFF]/12 px-3 py-2 text-xs font-medium text-[#E0D6FF] transition-all duration-150 hover:border-[#A48DFF]/45 hover:bg-[#7C5CFF]/2 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isGeneratingImage ? "Generating..." : "Download Image"}
-        </button>
+        </motion.button>
 
-        <button
+        <motion.button
           type="button"
           onClick={() => void handleCopyShareLink()}
+          whileHover={{ y: -1, scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           className="rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 py-2 text-xs font-medium text-white/80 transition-all duration-150 hover:border-[#7C5CFF]/35 hover:bg-[#7C5CFF]/14"
         >
           Copy Share Link
-        </button>
+        </motion.button>
       </div>
-    </section>
+    </motion.section>
   );
 }
