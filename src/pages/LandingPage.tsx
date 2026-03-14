@@ -76,7 +76,7 @@ const pricingPlans = [
   },
   {
     name: "Pro",
-    price: "$12 / month",
+    price: "$10 / month",
     features: [
       "unlimited ideas",
       "all hook templates",
@@ -339,6 +339,19 @@ export default function LandingPage() {
     return () => window.clearInterval(intervalId);
   }, []);
 
+  useEffect(() => {
+    if (window.location.pathname !== "/pricing") {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      document.getElementById("pricing")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }, []);
+
   const handlePreviewMouseMove = (event: ReactMouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const px = (event.clientX - rect.left) / rect.width;
@@ -592,6 +605,7 @@ export default function LandingPage() {
         </motion.section>
 
         <motion.section
+          id="pricing"
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}

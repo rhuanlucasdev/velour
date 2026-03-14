@@ -11,7 +11,7 @@ export default function App() {
   const { session, isLoading } = useAuth();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const pathname = window.location.pathname;
-  const isAppRoute = pathname === "/app";
+  const isAppRoute = pathname === "/app" || pathname === "/dashboard";
 
   useEffect(() => {
     if (!isLoading && session) {
@@ -54,7 +54,7 @@ export default function App() {
     );
   }
 
-  if (pathname !== "/app") {
+  if (!isAppRoute) {
     return (
       <>
         <LandingPage />

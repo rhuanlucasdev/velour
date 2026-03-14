@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { toast } from "../utils/toast";
 
 interface NavItem {
   id: string;
@@ -115,7 +116,8 @@ const navItems: NavItem[] = [
 
 export default function Sidebar() {
   const [active, setActive] = useState("ideas");
-  const { user, logout } = useAuth();
+  const [isRedirectingToCheckout, setIsRedirectingToCheckout] = useState(false);
+  const { user, logout, isPro } = useAuth();
 
   const avatarUrl = user?.user_metadata.avatar_url as string | undefined;
   const displayName =
@@ -127,6 +129,41 @@ export default function Sidebar() {
 
   const handleLogout = () => {
     void logout();
+  };
+
+  const handleUpgrade = async () => {
+    if (!user?.id) {
+      toast("You need to be logged in to upgrade", { type: "error" });
+      return;
+    }
+
+    try {
+      setIsRedirectingToCheckout(true);
+
+      const response = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          email: user.email,
+        }),
+      });
+
+      const data = (await response.json()) as { url?: string; error?: string };
+
+      if (!response.ok || !data.url) {
+        throw new Error(data.error || "Could not start checkout");
+      }
+
+      window.location.href = data.url;
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Checkout failed", {
+        type: "error",
+      });
+      setIsRedirectingToCheckout(false);
+    }
   };
 
   return (
@@ -164,6 +201,23 @@ export default function Sidebar() {
       </nav>
 
       <div className="mt-auto border-t border-white/[0.08] px-1 pt-4">
+        {isPro ? (
+          <div className="mb-3 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-3 py-2 text-center text-xs font-medium text-emerald-300">
+            Velour Pro Active
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => void handleUpgrade()}
+            disabled={isRedirectingToCheckout}
+            className="mb-3 inline-flex w-full items-center justify-center rounded-lg border border-transparent bg-[#7C5CFF] px-3 py-2 text-xs font-semibold text-white transition-all duration-150 hover:bg-[#6B4EE0] hover:shadow-[0_0_24px_rgba(124,92,255,0.32)] disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {isRedirectingToCheckout
+              ? "Redirecting..."
+              : "Upgrade to Pro — $10/mo"}
+          </button>
+        )}
+
         <div className="flex items-center gap-2.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-2">
           {avatarUrl ? (
             <img

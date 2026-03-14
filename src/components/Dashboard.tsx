@@ -95,7 +95,7 @@ function SortableIdeaItem({
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [expandedIdeaId, setExpandedIdeaId] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const ideas = useIdeaStore((state) => state.ideas);
@@ -151,6 +151,21 @@ export default function Dashboard() {
 
     void loadIdeas(user.id);
   }, [loadIdeas, resetIdeas, user?.id]);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+
+    if (
+      url.pathname !== "/dashboard" ||
+      url.searchParams.get("upgrade") !== "success"
+    ) {
+      return;
+    }
+
+    toast("Velour Pro activated ✨", { type: "success" });
+    void refreshProfile();
+    window.history.replaceState({}, "", "/app");
+  }, [refreshProfile]);
 
   const handleCreateIdea = async () => {
     if (!user?.id) {
