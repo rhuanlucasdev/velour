@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { motion } from "framer-motion";
 import GridBackground from "../components/ui/GridBackground";
 import { useAuth } from "../context/AuthContext";
 
@@ -44,12 +45,30 @@ export default function ForgotPassword() {
         }}
       />
 
-      <main className="relative z-10 w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-7 backdrop-blur-xl shadow-[0_20px_80px_rgba(0,0,0,0.55)]">
+      <motion.main
+        initial={{ opacity: 0, y: 18, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-7 backdrop-blur-xl shadow-[0_20px_80px_rgba(0,0,0,0.55)]"
+      >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 hover:opacity-100"
+          style={{
+            background:
+              "radial-gradient(circle at 20% 0%, rgba(139,92,246,0.22), transparent 45%)",
+          }}
+        />
+
         <a
           href="/login"
-          className="text-sm text-white/60 transition-colors hover:text-white"
+          className="group relative inline-flex items-center gap-1 text-sm text-white/60 transition-all duration-200 hover:-translate-x-0.5 hover:text-white"
         >
-          ← Back to login
+          <span className="transition-transform duration-200 group-hover:-translate-x-0.5">
+            ←
+          </span>
+          <span>Back</span>
+          <span className="pointer-events-none absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-0 bg-white/60 transition-transform duration-300 group-hover:scale-x-100" />
         </a>
 
         <h1 className="mt-5 text-2xl font-semibold tracking-tight text-white/95">
@@ -93,12 +112,12 @@ export default function ForgotPassword() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex w-full items-center justify-center rounded-lg border border-transparent bg-[#7C5CFF] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#6B4EE0] hover:shadow-[0_0_20px_rgba(124,92,255,0.36)] disabled:cursor-not-allowed disabled:opacity-65"
+            className="inline-flex w-full items-center justify-center rounded-lg border border-transparent bg-[#7C5CFF] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.01] hover:bg-[#6B4EE0] hover:shadow-[0_0_20px_rgba(124,92,255,0.36)] active:scale-[0.995] disabled:cursor-not-allowed disabled:opacity-65"
           >
             {isSubmitting ? "Sending..." : "Send recovery email"}
           </button>
         </form>
-      </main>
+      </motion.main>
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from "react";
+import { motion } from "framer-motion";
 import GridBackground from "../components/ui/GridBackground";
 import { useAuth } from "../context/AuthContext";
+import RedirectLoading from "./RedirectLoading";
 
 export default function Register() {
   const { registerWithPassword } = useAuth();
@@ -11,6 +13,7 @@ export default function Register() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -36,7 +39,8 @@ export default function Register() {
           "Account created. Please check your email to confirm your account.",
         );
       } else {
-        window.location.href = "/app";
+        setIsRedirecting(true);
+        window.location.replace("/app");
       }
     } catch (error) {
       const message =
@@ -48,6 +52,15 @@ export default function Register() {
       setIsSubmitting(false);
     }
   };
+
+  if (isRedirecting) {
+    return (
+      <RedirectLoading
+        title="Account created"
+        subtitle="Taking you to your dashboard."
+      />
+    );
+  }
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0A0A0A] px-6 py-12 text-white">
@@ -62,12 +75,30 @@ export default function Register() {
         }}
       />
 
-      <main className="relative z-10 w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-7 backdrop-blur-xl shadow-[0_20px_80px_rgba(0,0,0,0.55)]">
+      <motion.main
+        initial={{ opacity: 0, y: 18, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-7 backdrop-blur-xl shadow-[0_20px_80px_rgba(0,0,0,0.55)]"
+      >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 hover:opacity-100"
+          style={{
+            background:
+              "radial-gradient(circle at 20% 0%, rgba(139,92,246,0.22), transparent 45%)",
+          }}
+        />
+
         <a
           href="/"
-          className="text-sm text-white/60 transition-colors hover:text-white"
+          className="group relative inline-flex items-center gap-1 text-sm text-white/60 transition-all duration-200 hover:-translate-x-0.5 hover:text-white"
         >
-          ← Back to landing
+          <span className="transition-transform duration-200 group-hover:-translate-x-0.5">
+            ←
+          </span>
+          <span>Back</span>
+          <span className="pointer-events-none absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-0 bg-white/60 transition-transform duration-300 group-hover:scale-x-100" />
         </a>
 
         <h1 className="mt-5 text-2xl font-semibold tracking-tight text-white/95">
@@ -167,7 +198,7 @@ export default function Register() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex w-full items-center justify-center rounded-lg border border-transparent bg-[#7C5CFF] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#6B4EE0] hover:shadow-[0_0_20px_rgba(124,92,255,0.36)] disabled:cursor-not-allowed disabled:opacity-65"
+            className="inline-flex w-full items-center justify-center rounded-lg border border-transparent bg-[#7C5CFF] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.01] hover:bg-[#6B4EE0] hover:shadow-[0_0_20px_rgba(124,92,255,0.36)] active:scale-[0.995] disabled:cursor-not-allowed disabled:opacity-65"
           >
             {isSubmitting ? "Creating account..." : "Create account"}
           </button>
@@ -182,7 +213,7 @@ export default function Register() {
             Login
           </a>
         </p>
-      </main>
+      </motion.main>
     </div>
   );
 }

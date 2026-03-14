@@ -8,6 +8,7 @@ import { useAuth } from "./context/AuthContext";
 import ForgotPassword from "./pages/ForgotPassword";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
+import RedirectLoading from "./pages/RedirectLoading";
 import Register from "./pages/Register";
 
 export default function App() {
@@ -18,6 +19,8 @@ export default function App() {
   const isRegisterRoute = pathname === "/register";
   const isForgotPasswordRoute = pathname === "/forgot-password";
   const isAuthRoute = isLoginRoute || isRegisterRoute || isForgotPasswordRoute;
+  const shouldRedirectToLogin = !isLoading && isAppRoute && !session;
+  const shouldRedirectToApp = !isLoading && isAuthRoute && !!session;
 
   useEffect(() => {
     if (isLoading) {
@@ -36,9 +39,28 @@ export default function App() {
 
   if (isLoading && (isAppRoute || isAuthRoute)) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0A0A0A] text-sm text-white/70">
-        Loading authentication...
-      </div>
+      <RedirectLoading
+        title="Checking authentication..."
+        subtitle="Securing your session before navigation."
+      />
+    );
+  }
+
+  if (shouldRedirectToLogin) {
+    return (
+      <RedirectLoading
+        title="Redirecting to login..."
+        subtitle="Please sign in to continue."
+      />
+    );
+  }
+
+  if (shouldRedirectToApp) {
+    return (
+      <RedirectLoading
+        title="Opening your workspace..."
+        subtitle="You are already authenticated."
+      />
     );
   }
 
@@ -52,10 +74,6 @@ export default function App() {
 
   if (isForgotPasswordRoute) {
     return <ForgotPassword />;
-  }
-
-  if (isAppRoute && !session) {
-    return null;
   }
 
   if (!isAppRoute) {
