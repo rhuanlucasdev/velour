@@ -1,91 +1,226 @@
 # Velour
 
-> A premium creative workspace for crafting viral content ideas.
+> A premium creator workspace for capturing ideas, crafting stronger hooks, and publishing faster.
 
 ---
 
 ## Overview
 
-Velour is a modern SaaS tool designed for creators who want to structure and develop viral content ideas through a fast, focused visual interface. It provides a clean, opinionated workspace — inspired by tools like Linear and Raycast — where ideas can be captured, shaped, and refined before going to production.
+Velour is a React + TypeScript SaaS-style app for creators who want a polished workflow for ideation and content development. The project now includes a premium marketing landing page, protected app access with Supabase authentication, and persistent idea storage per user.
 
-The MVP establishes the foundational layout, design system, and state architecture needed to build the full creator workflow on top of.
+The experience is split into two main surfaces:
+
+- **Landing page** at `/` for product marketing and conversion
+- **Authenticated app** at `/app` for managing content ideas
 
 ---
 
-## Features (MVP)
+## Current Features
 
-- **Dark mode premium UI** — deep dark aesthetic using a curated token palette
-- **Sidebar navigation** — vertical nav with Ideas, Templates and Drafts sections
-- **Responsive dashboard grid** — 1 → 2 → 3 column layout adapting to screen width
-- **Idea card system** — hoverable cards with subtle elevation and accent effects
-- **Reusable design system** — `Button`, `Card`, `Container` and `SectionHeader` primitives
-- **Zustand architecture** — store and type layer prepared for full idea management
+### Landing Page
+
+- Premium dark-mode SaaS landing page
+- Animated hero with aurora, spotlight, and rotating headline word
+- Creator platform logo strip
+- “Before vs After Velour” comparison section
+- Social proof and fake real-time activity feed
+- Live hook generation demo
+- Pricing section and beta email capture card
+- Glassmorphism UI, subtle motion, and high-end visual polish
+
+### Authenticated App
+
+- Supabase authentication with:
+  - Google login
+  - GitHub login
+- Protected `/app` route
+- Sidebar with authenticated user avatar
+- Logout flow
+
+### Ideas Workflow
+
+- Create, edit, and delete ideas
+- Structured idea fields:
+  - title
+  - tags
+  - hook
+  - insight
+  - twist
+  - cta
+- Hook templates
+- Hook strength indicator
+- Post preview modal
+- Drag-and-drop idea board
+- Command palette shortcuts
+
+### Data Persistence
+
+- Ideas stored in Supabase database
+- Row Level Security enabled
+- User isolation by `user_id`
+- Dashboard loads ideas from Supabase on login
+- Local UI state synced with remote database updates
 
 ---
 
 ## Tech Stack
 
-| Layer    | Technology  |
-| -------- | ----------- |
-| UI       | React 18    |
-| Language | TypeScript  |
-| Bundler  | Vite        |
-| Styling  | TailwindCSS |
-| State    | Zustand     |
+| Layer     | Technology    |
+| --------- | ------------- |
+| UI        | React 18      |
+| Language  | TypeScript    |
+| Bundler   | Vite          |
+| Styling   | Tailwind CSS  |
+| Motion    | Framer Motion |
+| State     | Zustand       |
+| Auth + DB | Supabase      |
 
 ---
 
-## Project Structure
+## Environment Variables
 
+Create a local env file at [.env.local](.env.local):
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxx
 ```
-src/
-├── components/
-│   ├── ui/             # Reusable design system primitives
-│   │   ├── Button.tsx
-│   │   ├── Card.tsx
-│   │   ├── Container.tsx
-│   │   └── SectionHeader.tsx
-│   ├── AppLayout.tsx   # Root shell (sidebar + main area)
-│   ├── Sidebar.tsx     # Vertical navigation
-│   ├── Dashboard.tsx   # Ideas grid view
-│   └── IdeaCard.tsx    # Individual idea card
-├── store/
-│   └── ideaStore.ts    # Zustand store (ideas, addIdea, updateIdea, deleteIdea)
-├── types/
-│   └── idea.ts         # Core Idea type definition
-├── App.tsx
-├── main.tsx
-└── index.css
-public/
-└── favicon.svg         # Custom gem-mark brand icon
-```
+
+> Do not expose Supabase `sb_secret` keys in the frontend.
+
+---
+
+## Supabase Setup
+
+### 1. Authentication
+
+Configure these providers in Supabase:
+
+- Google
+- GitHub
+
+Set:
+
+- **Site URL**: `http://localhost:5173`
+- **Redirect URL**: `http://localhost:5173/app`
+
+### 2. Database
+
+Run the SQL in [supabase/ideas.sql](supabase/ideas.sql) inside the Supabase SQL Editor.
+
+This creates:
+
+- `ideas` table
+- index for `user_id` + `created_at`
+- RLS policy restricting access to each user's own ideas
 
 ---
 
 ## Getting Started
 
 ```bash
-# Install dependencies
+# install dependencies
 npm install
 
-# Start the development server
+# start development server
 npm run dev
 
-# Build for production
+# build for production
 npm run build
+```
+
+Then:
+
+1. Add Supabase env vars
+2. Configure Google and GitHub auth providers
+3. Run the SQL from [supabase/ideas.sql](supabase/ideas.sql)
+
+---
+
+## Project Structure
+
+```text
+src/
+├── components/
+│   ├── auth/
+│   │   └── LoginModal.tsx
+│   ├── command/
+│   │   └── CommandPalette.tsx
+│   ├── ideas/
+│   │   ├── EmptyState.tsx
+│   │   ├── HookBlock.tsx
+│   │   ├── HookStrengthIndicator.tsx
+│   │   ├── HookTemplatePicker.tsx
+│   │   ├── IdeaExpansionModal.tsx
+│   │   ├── TagInput.tsx
+│   │   └── TagPill.tsx
+│   ├── preview/
+│   │   ├── LinkedInPreview.tsx
+│   │   ├── PostPreviewModal.tsx
+│   │   └── TwitterPreview.tsx
+│   ├── ui/
+│   │   ├── AuroraBackground.tsx
+│   │   ├── AutosaveIndicator.tsx
+│   │   ├── Button.tsx
+│   │   ├── Card.tsx
+│   │   ├── Container.tsx
+│   │   ├── GridBackground.tsx
+│   │   ├── SectionHeader.tsx
+│   │   └── ToastProvider.tsx
+│   ├── AppLayout.tsx
+│   ├── Dashboard.tsx
+│   ├── IdeaCard.tsx
+│   ├── LiveActivityFeed.tsx
+│   ├── LiveHookDemo.tsx
+│   └── Sidebar.tsx
+├── context/
+│   └── AuthContext.tsx
+├── data/
+│   └── hookTemplates.ts
+├── lib/
+│   └── supabase.ts
+├── pages/
+│   └── LandingPage.tsx
+├── store/
+│   ├── ideaStore.ts
+│   └── toastStore.ts
+├── types/
+│   └── idea.ts
+├── utils/
+│   ├── calculateHookScore.ts
+│   └── toast.ts
+├── App.tsx
+├── index.css
+├── main.tsx
+└── vite-env.d.ts
+
+supabase/
+└── ideas.sql
 ```
 
 ---
 
-## Roadmap
+## Product Status
 
-- [ ] Idea creation flow (modal + form)
-- [ ] Hook composer (structured fields: hook, insight, twist, CTA)
-- [ ] Drag and drop reordering
-- [ ] Templates library
-- [ ] AI-assisted hook generation
-- [ ] Export to clipboard / Notion / Google Docs
-- [ ] User authentication
+Already implemented:
+
+- [x] Premium landing page
+- [x] Auth with Supabase
+- [x] Google login
+- [x] GitHub login
+- [x] Persistent ideas with Supabase
+- [x] Row Level Security for ideas
+- [x] Create / edit / delete ideas
+- [x] Hook templates and previews
+- [x] Drag-and-drop dashboard
+
+Possible next steps:
+
+- [ ] Persist idea ordering in database
+- [ ] Realtime sync across tabs/devices
+- [ ] Team/shared workspaces
+- [ ] AI-assisted writing features
+- [ ] Billing / subscriptions
 
 ---
 
