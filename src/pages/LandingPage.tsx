@@ -3,6 +3,7 @@ import LiveHookDemo from "../components/LiveHookDemo";
 import SocialProof from "../components/SocialProof";
 import GridBackground from "../components/ui/GridBackground";
 import {
+  AnimatePresence,
   motion,
   useMotionValue,
   useMotionValueEvent,
@@ -96,6 +97,8 @@ const pricingPlans = [
   },
 ];
 
+const heroWords = ["Hooks", "Threads", "Posts", "Content"];
+
 function StepIcon({ index }: { index: number }) {
   return (
     <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/[0.12] bg-[#1A1A1A] text-sm font-semibold text-[#A78FFF]">
@@ -150,6 +153,7 @@ function FeatureCard({ title, description, className = "" }: FeatureCardProps) {
 
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [heroWordIndex, setHeroWordIndex] = useState(0);
   const landingRef = useRef<HTMLDivElement | null>(null);
   const { scrollY } = useScroll();
   const previewX = useMotionValue(0.5);
@@ -215,6 +219,14 @@ export default function LandingPage() {
         window.cancelAnimationFrame(frameId);
       }
     };
+  }, []);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setHeroWordIndex((current) => (current + 1) % heroWords.length);
+    }, 2000);
+
+    return () => window.clearInterval(intervalId);
   }, []);
 
   const handlePreviewMouseMove = (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -290,11 +302,21 @@ export default function LandingPage() {
 
           <div className="relative z-10">
             <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl md:leading-[1.05]">
-              Craft{" "}
-              <span className="bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
-                Viral Hooks
-              </span>{" "}
-              in Seconds
+              Craft Viral{" "}
+              <span className="relative inline-flex min-w-[1.2em] items-center justify-start align-baseline">
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={heroWords[heroWordIndex]}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.35, ease: "easeOut" }}
+                    className="bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent"
+                  >
+                    {heroWords[heroWordIndex]}
+                  </motion.span>
+                </AnimatePresence>
+              </span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/55 md:text-lg">
               Velour helps creators structure ideas, write powerful hooks, and
