@@ -156,6 +156,8 @@ export default function LandingPage() {
   const [heroWordIndex, setHeroWordIndex] = useState(0);
   const landingRef = useRef<HTMLDivElement | null>(null);
   const { scrollY } = useScroll();
+  const heroCtaX = useMotionValue(0);
+  const heroCtaY = useMotionValue(0);
   const previewX = useMotionValue(0.5);
   const previewY = useMotionValue(0.5);
   const glowX = useMotionValue("50%");
@@ -167,6 +169,16 @@ export default function LandingPage() {
   const rotateX = useSpring(rotateXRaw, {
     stiffness: 140,
     damping: 22,
+    mass: 0.5,
+  });
+  const heroCtaSpringX = useSpring(heroCtaX, {
+    stiffness: 220,
+    damping: 18,
+    mass: 0.5,
+  });
+  const heroCtaSpringY = useSpring(heroCtaY, {
+    stiffness: 220,
+    damping: 18,
     mass: 0.5,
   });
   const rotateY = useSpring(rotateYRaw, {
@@ -245,6 +257,23 @@ export default function LandingPage() {
     previewY.set(0.5);
     glowX.set("50%");
     glowY.set("50%");
+  };
+
+  const handleHeroCtaMouseMove = (
+    event: ReactMouseEvent<HTMLAnchorElement>,
+  ) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const relativeX = event.clientX - rect.left - rect.width / 2;
+    const relativeY = event.clientY - rect.top - rect.height / 2;
+    const maxOffset = 12;
+
+    heroCtaX.set(Math.max(-maxOffset, Math.min(maxOffset, relativeX * 0.2)));
+    heroCtaY.set(Math.max(-maxOffset, Math.min(maxOffset, relativeY * 0.25)));
+  };
+
+  const handleHeroCtaMouseLeave = () => {
+    heroCtaX.set(0);
+    heroCtaY.set(0);
   };
 
   return (
@@ -326,12 +355,15 @@ export default function LandingPage() {
               publish content faster.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <a
+              <motion.a
                 href="/app"
+                onMouseMove={handleHeroCtaMouseMove}
+                onMouseLeave={handleHeroCtaMouseLeave}
+                style={{ x: heroCtaSpringX, y: heroCtaSpringY }}
                 className="inline-flex items-center justify-center rounded-lg border border-transparent bg-[#7C5CFF] px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:bg-[#6B4EE0] hover:shadow-[0_0_24px_rgba(124,92,255,0.38)]"
               >
                 Open Velour
-              </a>
+              </motion.a>
               <a
                 href="#features"
                 className="inline-flex items-center justify-center rounded-lg border border-white/[0.12] bg-[#151515] px-5 py-2.5 text-sm font-medium text-white/75 transition-all duration-200 hover:scale-105 hover:border-white/[0.22] hover:text-white"
