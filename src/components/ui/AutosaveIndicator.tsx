@@ -39,7 +39,7 @@ export default function AutosaveIndicator({ status }: AutosaveIndicatorProps) {
           >
             <path d="M20 6 9 17l-5-5" />
           </svg>
-          <span>Saved ✓</span>
+          <span>Saved</span>
         </>
       ) : null}
     </div>
