@@ -1,4 +1,5 @@
 import AuroraBackground from "../components/ui/AuroraBackground";
+import GridBackground from "../components/ui/GridBackground";
 import { motion } from "framer-motion";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
@@ -103,8 +104,10 @@ function FeatureCard({ title, description, className = "" }: FeatureCardProps) {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white">
-      <div className="mx-auto w-full max-w-6xl px-6 py-10 md:px-8 lg:px-12">
+    <div className="relative min-h-screen bg-[#0A0A0A] text-white">
+      <GridBackground />
+
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-10 md:px-8 lg:px-12">
         <header className="mb-20 flex items-center justify-between">
           <a
             href="/"

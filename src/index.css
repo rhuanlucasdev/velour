@@ -43,6 +43,40 @@
 }
 
 @layer utilities {
+  @keyframes gridShift {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(-20px, -16px, 0);
+    }
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes gridShiftSlow {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(14px, -12px, 0);
+    }
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  .grid-shift {
+    will-change: transform;
+    animation: gridShift 36s linear infinite;
+  }
+
+  .grid-shift-slow {
+    will-change: transform;
+    animation: gridShiftSlow 48s linear infinite;
+  }
+
   @keyframes auroraMoveA {
     0% {
       transform: translate3d(0, 0, 0) scale(1);
