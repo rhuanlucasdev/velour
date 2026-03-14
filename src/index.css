@@ -41,3 +41,62 @@
     background: rgba(255, 255, 255, 0.14);
   }
 }
+
+@layer utilities {
+  @keyframes auroraMoveA {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(7%, 6%, 0) scale(1.08);
+    }
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+  }
+
+  @keyframes auroraMoveB {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1.05);
+    }
+    50% {
+      transform: translate3d(-8%, 5%, 0) scale(0.95);
+    }
+    100% {
+      transform: translate3d(0, 0, 0) scale(1.05);
+    }
+  }
+
+  @keyframes auroraMoveC {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(4%, -7%, 0) scale(1.06);
+    }
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+  }
+
+  .aurora-container {
+    isolation: isolate;
+  }
+
+  .aurora-blob {
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .aurora-blob-1 {
+    animation: auroraMoveA 22s linear infinite;
+  }
+
+  .aurora-blob-2 {
+    animation: auroraMoveB 26s linear infinite;
+  }
+
+  .aurora-blob-3 {
+    animation: auroraMoveC 20s linear infinite;
+  }
+}

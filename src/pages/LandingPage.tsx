@@ -1,3 +1,5 @@
+import AuroraBackground from "../components/ui/AuroraBackground";
+
 const features = [
   {
     title: "Hook Templates",
@@ -72,31 +74,35 @@ export default function LandingPage() {
           </a>
         </header>
 
-        <section className="mx-auto mb-24 max-w-4xl text-center">
-          <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl md:leading-[1.05]">
-            Craft{" "}
-            <span className="bg-gradient-to-r from-[#7C5CFF] via-[#A78FFF] to-[#D3C7FF] bg-clip-text text-transparent">
-              Viral Hooks
-            </span>{" "}
-            in Seconds
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/55 md:text-lg">
-            Velour helps creators structure ideas, write powerful hooks, and
-            publish content faster.
-          </p>
-          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <a
-              href="/app"
-              className="inline-flex items-center justify-center rounded-lg border border-transparent bg-[#7C5CFF] px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:bg-[#6B4EE0] hover:shadow-[0_0_24px_rgba(124,92,255,0.38)]"
-            >
-              Open Velour
-            </a>
-            <a
-              href="#features"
-              className="inline-flex items-center justify-center rounded-lg border border-white/[0.12] bg-[#151515] px-5 py-2.5 text-sm font-medium text-white/75 transition-all duration-200 hover:scale-105 hover:border-white/[0.22] hover:text-white"
-            >
-              View Features
-            </a>
+        <section className="relative mx-auto mb-24 max-w-5xl overflow-hidden rounded-3xl border border-white/[0.08] bg-[#111111] px-6 py-16 text-center shadow-[0_20px_50px_rgba(0,0,0,0.45)] md:px-10 md:py-20">
+          <AuroraBackground />
+
+          <div className="relative z-10">
+            <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl md:leading-[1.05]">
+              Craft{" "}
+              <span className="bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
+                Viral Hooks
+              </span>{" "}
+              in Seconds
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/55 md:text-lg">
+              Velour helps creators structure ideas, write powerful hooks, and
+              publish content faster.
+            </p>
+            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <a
+                href="/app"
+                className="inline-flex items-center justify-center rounded-lg border border-transparent bg-[#7C5CFF] px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:bg-[#6B4EE0] hover:shadow-[0_0_24px_rgba(124,92,255,0.38)]"
+              >
+                Open Velour
+              </a>
+              <a
+                href="#features"
+                className="inline-flex items-center justify-center rounded-lg border border-white/[0.12] bg-[#151515] px-5 py-2.5 text-sm font-medium text-white/75 transition-all duration-200 hover:scale-105 hover:border-white/[0.22] hover:text-white"
+              >
+                View Features
+              </a>
+            </div>
           </div>
         </section>
 
