@@ -5,7 +5,13 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
-import { useMemo, useState, type MouseEvent as ReactMouseEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 
 const hookTemplates = [
   "Most people trying to {idea} are making this mistake.",
@@ -26,13 +32,21 @@ const shuffle = <T,>(items: T[]) => {
   return next;
 };
 
+interface GeneratedHook {
+  id: string;
+  text: string;
+  isComplete: boolean;
+}
+
 export default function LiveHookDemo() {
   const [idea, setIdea] = useState("");
-  const [hooks, setHooks] = useState<string[]>([]);
+  const [hooks, setHooks] = useState<GeneratedHook[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
   const cardX = useMotionValue(0.5);
   const cardY = useMotionValue(0.5);
   const glowX = useMotionValue("50%");
   const glowY = useMotionValue("50%");
+  const generationTimeoutsRef = useRef<number[]>([]);
 
   const rotateXRaw = useTransform(cardY, [0, 1], [6, -6]);
   const rotateYRaw = useTransform(cardX, [0, 1], [-6, 6]);
@@ -55,6 +69,13 @@ export default function LiveHookDemo() {
 
   const canGenerate = useMemo(() => idea.trim().length > 0, [idea]);
 
+  const clearGenerationTimeouts = () => {
+    generationTimeoutsRef.current.forEach((timeoutId) => {
+      window.clearTimeout(timeoutId);
+    });
+    generationTimeoutsRef.current = [];
+  };
+
   const handleGenerateHooks = () => {
     const normalizedIdea = idea.trim();
     if (!normalizedIdea) {
@@ -66,7 +87,75 @@ export default function LiveHookDemo() {
       template.replace(/\{idea\}/g, normalizedIdea),
     );
 
-    setHooks(generatedHooks);
+    clearGenerationTimeouts();
+    setHooks([]);
+    setIsGenerating(true);
+
+    const typeHook = (hookIndex: number, charIndex = 0) => {
+      const fullHook = generatedHooks[hookIndex];
+
+      if (!fullHook) {
+        setIsGenerating(false);
+        return;
+      }
+
+      const typingTimeout = window.setTimeout(() => {
+        const nextText = fullHook.slice(0, charIndex + 1);
+
+        setHooks((currentHooks) => {
+          const nextHooks = [...currentHooks];
+
+          if (!nextHooks[hookIndex]) {
+            nextHooks[hookIndex] = {
+              id: `${hookIndex}-${fullHook}`,
+              text: nextText,
+              isComplete: false,
+            };
+          } else {
+            nextHooks[hookIndex] = {
+              ...nextHooks[hookIndex],
+              text: nextText,
+            };
+          }
+
+          return nextHooks;
+        });
+
+        if (charIndex + 1 < fullHook.length) {
+          typeHook(hookIndex, charIndex + 1);
+          return;
+        }
+
+        setHooks((currentHooks) => {
+          const nextHooks = [...currentHooks];
+          const currentHook = nextHooks[hookIndex];
+
+          if (currentHook) {
+            nextHooks[hookIndex] = {
+              ...currentHook,
+              isComplete: true,
+            };
+          }
+
+          return nextHooks;
+        });
+
+        const nextHookTimeout = window.setTimeout(() => {
+          if (hookIndex + 1 < generatedHooks.length) {
+            typeHook(hookIndex + 1, 0);
+            return;
+          }
+
+          setIsGenerating(false);
+        }, 260);
+
+        generationTimeoutsRef.current.push(nextHookTimeout);
+      }, 28);
+
+      generationTimeoutsRef.current.push(typingTimeout);
+    };
+
+    typeHook(0, 0);
   };
 
   const handleCardMouseMove = (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -86,6 +175,12 @@ export default function LiveHookDemo() {
     glowX.set("50%");
     glowY.set("50%");
   };
+
+  useEffect(() => {
+    return () => {
+      clearGenerationTimeouts();
+    };
+  }, []);
 
   return (
     <motion.section
@@ -143,11 +238,17 @@ export default function LiveHookDemo() {
             </div>
           </div>
 
+          {isGenerating ? (
+            <p className="mt-4 text-sm text-white/55">
+              Velour is crafting hooks...
+            </p>
+          ) : null}
+
           <div className="mt-6 space-y-3">
             <AnimatePresence mode="popLayout">
               {hooks.map((hook, index) => (
                 <motion.article
-                  key={hook}
+                  key={hook.id}
                   initial={{ opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
@@ -156,20 +257,28 @@ export default function LiveHookDemo() {
                     ease: "easeOut",
                     delay: index * 0.04,
                   }}
-                  className="rounded-xl border border-white/10 bg-black/40 p-4 text-sm leading-relaxed text-white/85 transition-all duration-200 hover:border-[#7C5CFF]/40 hover:bg-black/55 hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)]"
+                  className={`rounded-xl border bg-black/40 p-4 text-sm leading-relaxed text-white/85 transition-all duration-300 hover:border-[#7C5CFF]/40 hover:bg-black/55 hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)] ${
+                    hook.isComplete
+                      ? "border-[#7C5CFF]/35 shadow-[0_0_26px_rgba(124,92,255,0.16)]"
+                      : "border-white/10"
+                  }`}
                 >
-                  {hook}
+                  {hook.text}
                 </motion.article>
               ))}
             </AnimatePresence>
           </div>
 
-          <a
-            href="/app"
-            className="mt-7 inline-flex items-center justify-center rounded-xl border border-white/15 bg-[#171717] px-5 py-2.5 text-sm font-semibold text-white/85 transition-all duration-200 hover:scale-[1.02] hover:border-white/30 hover:bg-[#1F1F1F]"
-          >
-            Open Velour
-          </a>
+          {!isGenerating &&
+          hooks.length === 3 &&
+          hooks.every((hook) => hook.isComplete) ? (
+            <a
+              href="/app"
+              className="mt-7 inline-flex items-center justify-center rounded-xl border border-white/15 bg-[#171717] px-5 py-2.5 text-sm font-semibold text-white/85 transition-all duration-200 hover:scale-[1.02] hover:border-white/30 hover:bg-[#1F1F1F]"
+            >
+              Open Velour to save this idea
+            </a>
+          ) : null}
         </div>
       </motion.div>
     </motion.section>
