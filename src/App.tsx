@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import AppLayout from "./components/AppLayout";
 import LoginModal from "./components/auth/LoginModal";
+import UpgradeModal from "./components/billing/UpgradeModal";
 import CommandPalette from "./components/command/CommandPalette";
 import Dashboard from "./components/Dashboard";
 import ToastProvider from "./components/ui/ToastProvider";
@@ -72,6 +73,7 @@ export default function App() {
         <Dashboard />
       </AppLayout>
       <CommandPalette />
+      <UpgradeModal />
       <ToastProvider />
     </>
   );

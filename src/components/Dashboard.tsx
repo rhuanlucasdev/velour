@@ -26,6 +26,8 @@ import { useEffect, useMemo, useState } from "react";
 import Card from "./ui/Card";
 import TagPill from "./ideas/TagPill";
 import { useAuth } from "../context/AuthContext";
+import { FREE_MAX_IDEAS } from "../constants/freemium";
+import { useUpgradeStore } from "../store/upgradeStore";
 
 const getBentoClasses = (index: number) => {
   if (index === 0) {
@@ -95,7 +97,7 @@ function SortableIdeaItem({
 }
 
 export default function Dashboard() {
-  const { user, refreshProfile } = useAuth();
+  const { user, refreshProfile, isPro } = useAuth();
   const [expandedIdeaId, setExpandedIdeaId] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const ideas = useIdeaStore((state) => state.ideas);
@@ -105,6 +107,7 @@ export default function Dashboard() {
   const loadIdeas = useIdeaStore((state) => state.loadIdeas);
   const reorderIdeas = useIdeaStore((state) => state.reorderIdeas);
   const resetIdeas = useIdeaStore((state) => state.resetIdeas);
+  const openUpgradeModal = useUpgradeStore((state) => state.openUpgradeModal);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -170,6 +173,12 @@ export default function Dashboard() {
   const handleCreateIdea = async () => {
     if (!user?.id) {
       toast("You need to be logged in to create ideas", { type: "error" });
+      return;
+    }
+
+    if (!isPro && ideas.length >= FREE_MAX_IDEAS) {
+      toast("Free plan limit reached (10 ideas)", { type: "info" });
+      openUpgradeModal();
       return;
     }
 

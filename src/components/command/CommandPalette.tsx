@@ -5,6 +5,8 @@ import TagPill from "../ideas/TagPill";
 import { useIdeaStore } from "../../store/ideaStore";
 import { toast } from "../../utils/toast";
 import { useAuth } from "../../context/AuthContext";
+import { FREE_MAX_IDEAS } from "../../constants/freemium";
+import { useUpgradeStore } from "../../store/upgradeStore";
 
 type CommandItem =
   | {
@@ -23,9 +25,10 @@ type CommandItem =
     };
 
 export default function CommandPalette() {
-  const { user } = useAuth();
+  const { user, isPro } = useAuth();
   const ideas = useIdeaStore((state) => state.ideas);
   const createIdea = useIdeaStore((state) => state.createIdea);
+  const openUpgradeModal = useUpgradeStore((state) => state.openUpgradeModal);
 
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -57,6 +60,13 @@ export default function CommandPalette() {
             return;
           }
 
+          if (!isPro && ideas.length >= FREE_MAX_IDEAS) {
+            toast("Free plan limit reached (10 ideas)", { type: "info" });
+            openUpgradeModal();
+            setIsOpen(false);
+            return;
+          }
+
           void createIdea(user.id).then((createdId) => {
             if (createdId) {
               toast("Idea created ✅", { type: "success" });
@@ -85,7 +95,7 @@ export default function CommandPalette() {
         },
       },
     ],
-    [createIdea, user?.id],
+    [createIdea, ideas.length, isPro, openUpgradeModal, user?.id],
   );
 
   const commandItems = useMemo<CommandItem[]>(() => {
