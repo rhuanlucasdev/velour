@@ -1,5 +1,6 @@
 import AuroraBackground from "../components/ui/AuroraBackground";
 import { motion } from "framer-motion";
+import type { MouseEvent as ReactMouseEvent } from "react";
 
 const features = [
   {
@@ -52,6 +53,50 @@ function StepIcon({ index }: { index: number }) {
   return (
     <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/[0.12] bg-[#1A1A1A] text-sm font-semibold text-[#A78FFF]">
       {index + 1}
+    </div>
+  );
+}
+
+interface FeatureCardProps {
+  title: string;
+  description: string;
+  className?: string;
+}
+
+function FeatureCard({ title, description, className = "" }: FeatureCardProps) {
+  const handleMouseMove = (event: ReactMouseEvent<HTMLDivElement>) => {
+    const card = event.currentTarget;
+    const rect = card.getBoundingClientRect();
+
+    card.style.setProperty("--x", `${event.clientX - rect.left}px`);
+    card.style.setProperty("--y", `${event.clientY - rect.top}px`);
+  };
+
+  return (
+    <div
+      onMouseMove={handleMouseMove}
+      className={`group relative rounded-2xl p-px transition-all duration-300 hover:scale-[1.02] ${className}`}
+    >
+      <div className="pointer-events-none absolute inset-0 rounded-2xl bg-transparent transition-all duration-300 group-hover:bg-gradient-to-br group-hover:from-purple-500/30 group-hover:to-indigo-500/30" />
+
+      <article className="relative h-full rounded-2xl border border-white/[0.08] bg-[#141414] p-5 transition-all duration-300 group-hover:border-transparent">
+        <div
+          className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{
+            background:
+              "radial-gradient(circle at var(--x) var(--y), rgba(139,92,246,0.15), transparent 40%)",
+          }}
+        />
+
+        <div className="relative z-10">
+          <h3 className="text-[15px] font-semibold tracking-tight text-white/92">
+            {title}
+          </h3>
+          <p className="mt-2 text-sm leading-relaxed text-white/50">
+            {description}
+          </p>
+        </div>
+      </article>
     </div>
   );
 }
@@ -119,19 +164,14 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 auto-rows-[150px]">
             {features.map((feature, index) => (
-              <article
+              <FeatureCard
                 key={feature.title}
-                className={`rounded-2xl border border-white/[0.08] bg-[#141414] p-5 transition-all duration-200 hover:-translate-y-1 hover:border-white/[0.14] hover:shadow-[0_18px_36px_rgba(0,0,0,0.45)] ${
+                title={feature.title}
+                description={feature.description}
+                className={`${
                   index === 0 || index === 3 ? "lg:col-span-2" : "lg:col-span-1"
                 }`}
-              >
-                <h3 className="text-[15px] font-semibold tracking-tight text-white/92">
-                  {feature.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-white/50">
-                  {feature.description}
-                </p>
-              </article>
+              />
             ))}
           </div>
         </section>
