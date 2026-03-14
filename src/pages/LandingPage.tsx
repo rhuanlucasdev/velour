@@ -193,6 +193,16 @@ export default function LandingPage() {
   return (
     <div className="relative min-h-screen bg-[#0A0A0A] text-white">
       <GridBackground />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.03] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill='white'%3E%3Ccircle cx='12' cy='20' r='1'/%3E%3Ccircle cx='44' cy='72' r='1'/%3E%3Ccircle cx='88' cy='28' r='1'/%3E%3Ccircle cx='132' cy='60' r='1'/%3E%3Ccircle cx='164' cy='134' r='1'/%3E%3Ccircle cx='18' cy='146' r='1'/%3E%3Ccircle cx='70' cy='112' r='1'/%3E%3Ccircle cx='116' cy='158' r='1'/%3E%3Ccircle cx='152' cy='18' r='1'/%3E%3Ccircle cx='98' cy='92' r='1'/%3E%3Ccircle cx='36' cy='168' r='1'/%3E%3Ccircle cx='172' cy='86' r='1'/%3E%3C/g%3E%3C/svg%3E\")",
+          backgroundRepeat: "repeat",
+          backgroundSize: "180px 180px",
+        }}
+      />
 
       <div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-10 md:px-8 lg:px-12">
         <motion.header
@@ -408,7 +418,9 @@ export default function LandingPage() {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-white/75">{plan.name}</p>
+                    <p className="text-sm font-medium text-white/75">
+                      {plan.name}
+                    </p>
                     {plan.badge ? (
                       <span className="rounded-full border border-purple-300/40 bg-purple-500/20 px-2.5 py-1 text-[11px] font-medium text-purple-100">
                         {plan.badge}
