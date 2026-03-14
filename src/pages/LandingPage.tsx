@@ -596,6 +596,41 @@ export default function LandingPage() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
           viewport={{ once: true, amount: 0.2 }}
+          className="mb-24"
+        >
+          <div className="mx-auto max-w-3xl rounded-3xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-xl md:p-10">
+            <h2 className="text-2xl font-semibold tracking-tight text-white/95 md:text-3xl">
+              Join the Velour Creator Beta
+            </h2>
+            <p className="mt-3 text-sm text-white/60 md:text-base">
+              Get early access features and updates.
+            </p>
+
+            <form className="mx-auto mt-7 flex w-full max-w-xl flex-col gap-3 sm:flex-row">
+              <input
+                type="email"
+                placeholder="you@example.com"
+                className="w-full rounded-xl border border-white/10 bg-[#121212]/70 px-4 py-3 text-sm text-white/90 placeholder:text-white/40 outline-none transition-all duration-200 focus:border-purple-400/70 focus:shadow-[0_0_0_3px_rgba(124,92,255,0.22),0_0_24px_rgba(124,92,255,0.25)]"
+              />
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center rounded-xl border border-transparent bg-[#7C5CFF] px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#6B4EE0] hover:shadow-[0_0_24px_rgba(124,92,255,0.38)]"
+              >
+                Join Beta
+              </button>
+            </form>
+
+            <p className="mt-3 text-xs text-white/45">
+              No spam. Just product updates.
+            </p>
+          </div>
+        </motion.section>
+
+        <motion.section
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          viewport={{ once: true, amount: 0.2 }}
           className="relative mb-24"
         >
           <div className="pointer-events-none absolute inset-0 -z-10 flex items-center justify-center overflow-hidden">
