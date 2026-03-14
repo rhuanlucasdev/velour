@@ -150,7 +150,26 @@ export default function Dashboard() {
         title="Ideas"
         subtitle={`${ideas.length} ideas — sorted by latest`}
         actions={
-          <Button size="sm" variant="outline" onClick={handleCreateIdea}>
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={handleCreateIdea}
+            className="group rounded-lg px-3.5 hover:scale-105 hover:shadow-[0_0_22px_rgba(124,92,255,0.4)]"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-90"
+              aria-hidden="true"
+            >
+              <path d="M12 5v14" />
+              <path d="M5 12h14" />
+            </svg>
             New Idea
           </Button>
         }
