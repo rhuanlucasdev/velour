@@ -1,7 +1,7 @@
 import AuroraBackground from "../components/ui/AuroraBackground";
 import GridBackground from "../components/ui/GridBackground";
-import { motion } from "framer-motion";
-import type { MouseEvent as ReactMouseEvent } from "react";
+import { motion, useMotionValueEvent, useScroll } from "framer-motion";
+import { useState, type MouseEvent as ReactMouseEvent } from "react";
 
 const features = [
   {
@@ -103,12 +103,28 @@ function FeatureCard({ title, description, className = "" }: FeatureCardProps) {
 }
 
 export default function LandingPage() {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const { scrollY } = useScroll();
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setIsScrolled(latest > 18);
+  });
+
   return (
     <div className="relative min-h-screen bg-[#0A0A0A] text-white">
       <GridBackground />
 
       <div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-10 md:px-8 lg:px-12">
-        <header className="mb-20 flex items-center justify-between">
+        <motion.header
+          initial={{ opacity: 0, y: -16 }}
+          animate={{
+            opacity: 1,
+            y: 0,
+            scale: isScrolled ? 0.99 : 1,
+          }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+          className="sticky top-4 z-50 mx-auto mt-6 mb-20 flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-5 py-3 backdrop-blur-xl shadow-[0_8px_40px_rgba(0,0,0,0.4)]"
+        >
           <a
             href="/"
             className="text-[17px] font-semibold tracking-tight text-white/90"
@@ -121,7 +137,7 @@ export default function LandingPage() {
           >
             Open App
           </a>
-        </header>
+        </motion.header>
 
         <section className="relative isolate mx-auto mb-24 max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-white/5 px-16 py-20 text-center backdrop-blur-xl shadow-[inset_0_0_40px_rgba(139,92,246,0.08),0_20px_80px_rgba(139,92,246,0.15)] before:pointer-events-none before:absolute before:inset-0 before:rounded-3xl before:p-px before:opacity-70 before:content-[''] before:bg-gradient-to-br before:from-purple-300/40 before:via-indigo-300/20 before:to-blue-300/30 before:[-webkit-mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] before:[-webkit-mask-composite:xor]">
           <AuroraBackground />
