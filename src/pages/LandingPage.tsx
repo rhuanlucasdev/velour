@@ -17,6 +17,7 @@ import {
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
+  type SVGProps,
 } from "react";
 
 const features = [
@@ -99,7 +100,59 @@ const pricingPlans = [
 ];
 
 const heroWords = ["Hooks", "Threads", "Posts", "Content"];
-const creatorPlatforms = ["Twitter", "LinkedIn", "Substack", "Medium", "Ghost"];
+
+function TwitterLogo(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <path d="M21.543 7.104c.015.213.015.426.015.64 0 6.525-4.968 14.053-14.053 14.053A13.95 13.95 0 0 1 0 19.54c.396.046.777.061 1.188.061a9.883 9.883 0 0 0 6.124-2.107 4.942 4.942 0 0 1-4.617-3.428c.305.046.61.076.93.076.442 0 .884-.061 1.295-.168A4.935 4.935 0 0 1 .96 9.138V9.08c.655.366 1.417.594 2.214.624A4.93 4.93 0 0 1 1.646 3.12a13.998 13.998 0 0 0 10.148 5.153 5.57 5.57 0 0 1-.122-1.127 4.935 4.935 0 0 1 8.533-3.367A9.796 9.796 0 0 0 23.33 2.59a4.922 4.922 0 0 1-2.168 2.717A9.875 9.875 0 0 0 24 4.54a10.615 10.615 0 0 1-2.457 2.564Z" />
+    </svg>
+  );
+}
+
+function LinkedInLogo(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <path d="M20.447 20.452h-3.554V14.89c0-1.327-.026-3.035-1.85-3.035-1.853 0-2.136 1.445-2.136 2.939v5.658H9.354V9h3.414v1.561h.048c.477-.9 1.637-1.85 3.37-1.85 3.602 0 4.266 2.37 4.266 5.455v6.286ZM5.337 7.433a2.063 2.063 0 1 1 0-4.126 2.063 2.063 0 0 1 0 4.126ZM7.114 20.452H3.56V9h3.554v11.452Z" />
+    </svg>
+  );
+}
+
+function SubstackLogo(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <rect x="3" y="4" width="18" height="2.2" rx="0.8" />
+      <rect x="3" y="8" width="18" height="2.2" rx="0.8" />
+      <rect x="3" y="12" width="18" height="2.2" rx="0.8" />
+      <path d="M4 16h16v4.2a.8.8 0 0 1-.8.8H4.8a.8.8 0 0 1-.8-.8V16Z" />
+    </svg>
+  );
+}
+
+function MediumLogo(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <circle cx="6" cy="12" r="4.2" />
+      <ellipse cx="13.7" cy="12" rx="3.2" ry="5.2" />
+      <ellipse cx="19.8" cy="12" rx="1.9" ry="4.1" />
+    </svg>
+  );
+}
+
+function GhostLogo(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <path d="M12 3a8 8 0 0 0-8 8v8.6a.4.4 0 0 0 .683.283L7.2 17.37a.4.4 0 0 1 .566 0l1.951 1.95a.4.4 0 0 0 .566 0l1.951-1.95a.4.4 0 0 1 .566 0l1.951 1.95a.4.4 0 0 0 .566 0l1.951-1.95a.4.4 0 0 1 .566 0l2.517 2.513A.4.4 0 0 0 20 19.6V11a8 8 0 0 0-8-8Zm-3 9a1.25 1.25 0 1 1 0-2.5A1.25 1.25 0 0 1 9 12Zm6 0a1.25 1.25 0 1 1 0-2.5A1.25 1.25 0 0 1 15 12Z" />
+    </svg>
+  );
+}
+
+const creatorPlatforms = [
+  { name: "Twitter", Logo: TwitterLogo },
+  { name: "LinkedIn", Logo: LinkedInLogo },
+  { name: "Substack", Logo: SubstackLogo },
+  { name: "Medium", Logo: MediumLogo },
+  { name: "Ghost", Logo: GhostLogo },
+];
 
 function StepIcon({ index }: { index: number }) {
   return (
@@ -393,12 +446,15 @@ export default function LandingPage() {
             Used by creators publishing on
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-10">
-            {creatorPlatforms.map((platform) => (
+            {creatorPlatforms.map(({ name, Logo }) => (
               <span
-                key={platform}
-                className="grayscale opacity-50 transition-opacity duration-200 hover:opacity-100"
+                key={name}
+                className="inline-flex h-7 w-7 items-center justify-center text-white grayscale opacity-50 transition-opacity duration-200 hover:opacity-100"
+                aria-label={name}
+                title={name}
               >
-                {platform}
+                <Logo className="h-full w-full" />
+                <span className="sr-only">{name}</span>
               </span>
             ))}
           </div>
