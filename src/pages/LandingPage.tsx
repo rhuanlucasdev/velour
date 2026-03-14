@@ -154,6 +154,49 @@ const creatorPlatforms = [
   { name: "Ghost", Logo: GhostLogo },
 ];
 
+const withoutVelourItems = [
+  "blank page frustration",
+  "weak hooks",
+  "unstructured ideas",
+  "slow writing",
+];
+
+const withVelourItems = [
+  "idea capture board",
+  "hook templates",
+  "hook strength scoring",
+  "post preview export",
+];
+
+function WithoutIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M9 9l6 6M15 9l-6 6"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function WithIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M8.5 12.6 10.9 15l4.8-5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function StepIcon({ index }: { index: number }) {
   return (
     <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/[0.12] bg-[#1A1A1A] text-sm font-semibold text-[#A78FFF]">
@@ -457,6 +500,60 @@ export default function LandingPage() {
                 <span className="sr-only">{name}</span>
               </span>
             ))}
+          </div>
+        </section>
+
+        <section className="mb-24">
+          <h2 className="text-center text-2xl font-semibold tracking-tight text-white/95 md:text-3xl">
+            Writing content without Velour vs with Velour.
+          </h2>
+
+          <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2">
+            <motion.article
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.45, ease: "easeOut" }}
+              viewport={{ once: true, amount: 0.35 }}
+              className="rounded-xl border border-white/10 bg-white/5 p-6"
+            >
+              <h3 className="text-lg font-semibold text-white/90">
+                Without Velour
+              </h3>
+              <ul className="mt-5 space-y-3">
+                {withoutVelourItems.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-center gap-3 text-sm text-white/70 md:text-base"
+                  >
+                    <WithoutIcon className="h-4 w-4 flex-none text-white/60" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </motion.article>
+
+            <motion.article
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.45, ease: "easeOut", delay: 0.08 }}
+              viewport={{ once: true, amount: 0.35 }}
+              className="rounded-xl border border-white/10 bg-white/5 p-6"
+            >
+              <h3 className="text-lg font-semibold text-white/90">
+                With Velour
+              </h3>
+              <ul className="mt-5 space-y-3">
+                {withVelourItems.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-center gap-3 text-sm text-white/70 md:text-base"
+                  >
+                    <WithIcon className="h-4 w-4 flex-none text-white/85" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </motion.article>
           </div>
         </section>
 
