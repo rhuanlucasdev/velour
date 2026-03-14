@@ -74,7 +74,7 @@ export default function LandingPage() {
           </a>
         </header>
 
-        <section className="relative mx-auto mb-24 max-w-5xl overflow-hidden rounded-3xl border border-white/[0.08] bg-[#111111] px-6 py-16 text-center shadow-[0_20px_50px_rgba(0,0,0,0.45)] md:px-10 md:py-20">
+        <section className="relative isolate mx-auto mb-24 max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-white/5 px-16 py-20 text-center backdrop-blur-xl shadow-[inset_0_0_40px_rgba(139,92,246,0.08),0_20px_80px_rgba(139,92,246,0.15)] before:pointer-events-none before:absolute before:inset-0 before:rounded-3xl before:p-px before:opacity-70 before:content-[''] before:bg-gradient-to-br before:from-purple-300/40 before:via-indigo-300/20 before:to-blue-300/30 before:[-webkit-mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] before:[-webkit-mask-composite:xor]">
           <AuroraBackground />
 
           <div className="relative z-10">
