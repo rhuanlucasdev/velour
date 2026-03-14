@@ -42,9 +42,11 @@ const getStartOfWeek = (date: Date) => {
 function CalendarIdeaCard({
   idea,
   onOpen,
+  isJustDropped = false,
 }: {
   idea: Idea;
   onOpen: () => void;
+  isJustDropped?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -62,6 +64,21 @@ function CalendarIdeaCard({
       style={{
         transform: CSS.Translate.toString(transform),
       }}
+      animate={
+        isJustDropped
+          ? {
+              scale: [1, 1.045, 1],
+              boxShadow: [
+                "0 0 0 rgba(124,92,255,0)",
+                "0 0 0 2px rgba(124,92,255,0.45), 0 0 24px rgba(124,92,255,0.35)",
+                "0 0 0 rgba(124,92,255,0)",
+              ],
+            }
+          : undefined
+      }
+      transition={
+        isJustDropped ? { duration: 0.34, ease: "easeOut" } : undefined
+      }
       whileHover={{ y: -2, scale: 1.01 }}
       whileTap={{ scale: 0.985 }}
       className={`group w-full cursor-grab touch-none rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2 text-left transition-all duration-200 hover:border-[#7C5CFF]/35 hover:bg-white/[0.05] hover:shadow-[0_8px_18px_rgba(124,92,255,0.2)] active:cursor-grabbing ${
@@ -75,11 +92,13 @@ function CalendarIdeaCard({
 
 function DayDropZone({
   dayKey,
+  index,
   label,
   dateLabel,
   children,
 }: {
   dayKey: string;
+  index: number;
   label: string;
   dateLabel: string;
   children: ReactNode;
@@ -89,8 +108,12 @@ function DayDropZone({
   });
 
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, delay: 0.03 * index, ease: "easeOut" }}
+      whileHover={{ y: -2 }}
       className={`min-h-[210px] rounded-xl border p-3 backdrop-blur-lg transition-all duration-200 ${
         isOver
           ? "border-[#7C5CFF]/55 bg-[#7C5CFF]/14 shadow-[0_0_24px_rgba(124,92,255,0.22)]"
@@ -106,7 +129,7 @@ function DayDropZone({
         </span>
       </div>
       <div className="space-y-2">{children}</div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -123,6 +146,9 @@ export default function Calendar() {
 
   const [activeDragIdeaId, setActiveDragIdeaId] = useState<string | null>(null);
   const [expandedIdeaId, setExpandedIdeaId] = useState<string | null>(null);
+  const [justDroppedIdeaId, setJustDroppedIdeaId] = useState<string | null>(
+    null,
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -139,6 +165,18 @@ export default function Calendar() {
 
     void loadIdeas(user.id);
   }, [loadIdeas, user?.id]);
+
+  useEffect(() => {
+    if (!justDroppedIdeaId) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setJustDroppedIdeaId(null);
+    }, 420);
+
+    return () => window.clearTimeout(timeout);
+  }, [justDroppedIdeaId]);
 
   const weekStart = useMemo(() => getStartOfWeek(new Date()), []);
 
@@ -207,6 +245,7 @@ export default function Calendar() {
 
     if (targetId === "unscheduled") {
       if (idea.scheduledDate !== null) {
+        setJustDroppedIdeaId(idea.id);
         void updateIdea(idea.id, { scheduledDate: null });
       }
       return;
@@ -221,6 +260,7 @@ export default function Calendar() {
       return;
     }
 
+    setJustDroppedIdeaId(idea.id);
     void updateIdea(idea.id, { scheduledDate: nextDate });
   };
 
@@ -252,19 +292,31 @@ export default function Calendar() {
 
   return (
     <Container className="py-8">
-      <SectionHeader
-        title="Content Calendar"
-        subtitle="Drag ideas into your week and click any card to edit."
-        className="mb-6"
-      />
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+      >
+        <SectionHeader
+          title="Content Calendar"
+          subtitle="Drag ideas into your week and click any card to edit."
+          className="mb-6"
+        />
+      </motion.div>
 
       <DndContext
         sensors={sensors}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="mb-6 grid gap-3">
-          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3 backdrop-blur-xl">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.04, ease: "easeOut" }}
+          whileHover={{ y: -2 }}
+          className="mb-6 grid gap-3"
+        >
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3 backdrop-blur-xl transition-all duration-200 hover:border-white/[0.14] hover:shadow-[0_12px_30px_rgba(0,0,0,0.35)]">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/45">
                 Backlog / Outside This Week
@@ -285,6 +337,7 @@ export default function Calendar() {
                     <CalendarIdeaCard
                       key={`backlog-${idea.id}`}
                       idea={idea}
+                      isJustDropped={idea.id === justDroppedIdeaId}
                       onOpen={() => setExpandedIdeaId(idea.id)}
                     />
                   ))}
@@ -292,13 +345,14 @@ export default function Calendar() {
               )}
             </BacklogDropZone>
           </div>
-        </div>
+        </motion.div>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
-          {weekDays.map((day) => (
+          {weekDays.map((day, index) => (
             <DayDropZone
               key={day.key}
               dayKey={day.key}
+              index={index}
               label={day.weekday}
               dateLabel={day.dateLabel}
             >
@@ -307,13 +361,23 @@ export default function Calendar() {
                   <CalendarIdeaCard
                     key={`${day.key}-${idea.id}`}
                     idea={idea}
+                    isJustDropped={idea.id === justDroppedIdeaId}
                     onOpen={() => setExpandedIdeaId(idea.id)}
                   />
                 ))
               ) : (
-                <p className="rounded-lg border border-dashed border-white/[0.1] px-2 py-4 text-center text-xs text-white/35">
+                <motion.p
+                  initial={{ opacity: 0.45 }}
+                  animate={{ opacity: [0.45, 0.7, 0.45] }}
+                  transition={{
+                    duration: 2.4,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="rounded-lg border border-dashed border-white/[0.1] px-2 py-4 text-center text-xs text-white/35"
+                >
                   Drop ideas here
-                </p>
+                </motion.p>
               )}
             </DayDropZone>
           ))}
@@ -321,11 +385,16 @@ export default function Calendar() {
 
         <DragOverlay>
           {activeDragIdea ? (
-            <div className="w-[250px]">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 6 }}
+              animate={{ opacity: 1, scale: 1.02, y: 0 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="w-[250px]"
+            >
               <div className="rounded-lg border border-[#7C5CFF]/40 bg-[#151218]/95 px-3 py-2 text-sm font-medium text-white shadow-[0_18px_40px_rgba(0,0,0,0.6),0_0_20px_rgba(124,92,255,0.25)]">
                 {activeDragIdea.title}
               </div>
-            </div>
+            </motion.div>
           ) : null}
         </DragOverlay>
       </DndContext>
@@ -344,8 +413,14 @@ function BacklogDropZone({ children }: { children: ReactNode }) {
   const { setNodeRef, isOver } = useDroppable({ id: "unscheduled" });
 
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
+      animate={
+        isOver
+          ? { scale: 1.005, borderColor: "rgba(124,92,255,0.45)" }
+          : { scale: 1, borderColor: "rgba(255,255,255,0.08)" }
+      }
+      transition={{ duration: 0.18, ease: "easeOut" }}
       className={`rounded-lg border p-2 transition-all duration-200 ${
         isOver
           ? "border-[#7C5CFF]/45 bg-[#7C5CFF]/12"
@@ -353,6 +428,6 @@ function BacklogDropZone({ children }: { children: ReactNode }) {
       }`}
     >
       {children}
-    </div>
+    </motion.div>
   );
 }

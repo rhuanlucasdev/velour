@@ -41,8 +41,19 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const refreshUser = useCallback(async () => {
+    const { data, error } = await supabase.auth.getUser();
+
+    if (error) {
+      return;
+    }
+
+    setUser(data.user ?? null);
+  }, []);
 
   const refreshProfile = useCallback(async () => {
     const userId = session?.user?.id;
@@ -75,12 +86,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     supabase.auth
       .getSession()
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         if (!isMounted) {
           return;
         }
 
         setSession(data.session);
+        setUser(data.session?.user ?? null);
+
+        if (data.session?.user) {
+          const { data: userData, error: userError } =
+            await supabase.auth.getUser();
+
+          if (!isMounted || userError) {
+            setIsLoading(false);
+            return;
+          }
+
+          setUser(userData.user ?? data.session.user);
+        }
+
         setIsLoading(false);
       })
       .catch(() => {
@@ -89,6 +114,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
 
         setSession(null);
+        setUser(null);
         setProfile(null);
         setIsLoading(false);
       });
@@ -97,7 +123,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+
+      if (nextSession?.user) {
+        void refreshUser();
+      }
+
       if (!nextSession) {
+        setUser(null);
         setProfile(null);
       }
       setIsLoading(false);
@@ -111,7 +144,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     void refreshProfile();
-  }, [session?.user?.id]);
+    void refreshUser();
+  }, [refreshProfile, refreshUser, session?.user?.id]);
 
   const login = useCallback(async (provider: Provider) => {
     await supabase.auth.signInWithOAuth({
@@ -189,7 +223,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value = useMemo<AuthContextValue>(
     () => ({
       session,
-      user: session?.user ?? null,
+      user,
       profile,
       isPro: profile?.is_pro ?? false,
       isLoading,
@@ -210,6 +244,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       registerWithPassword,
       requestPasswordReset,
       session,
+      user,
     ],
   );
 

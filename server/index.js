@@ -12,8 +12,24 @@ const stripeCreatorPriceId = maybeGetEnv("STRIPE_CREATOR_PRICE_ID");
 const stripeWebhookSecret = maybeGetEnv("STRIPE_WEBHOOK_SECRET");
 const appUrl = getEnv("APP_URL", "http://localhost:5173");
 
+function assertStripeClientConfigured(response) {
+  if (!stripe || !supabaseAdmin) {
+    response.status(500).json({
+      error:
+        "Stripe backend is not fully configured. Add STRIPE_SECRET_KEY and SUPABASE_SERVICE_ROLE_KEY.",
+    });
+    return false;
+  }
+
+  return true;
+}
+
 function assertStripeConfigured(response) {
-  if (!stripe || !stripeProPriceId || !stripeWebhookSecret || !supabaseAdmin) {
+  if (
+    !assertStripeClientConfigured(response) ||
+    !stripeProPriceId ||
+    !stripeWebhookSecret
+  ) {
     response.status(500).json({
       error:
         "Stripe backend is not fully configured. Add STRIPE_SECRET_KEY, STRIPE_PRO_PRICE_ID, STRIPE_WEBHOOK_SECRET and SUPABASE_SERVICE_ROLE_KEY.",
@@ -185,6 +201,51 @@ app.post(
 );
 
 app.use(express.json());
+
+app.post("/api/create-portal-session", async (request, response) => {
+  if (!assertStripeClientConfigured(response)) {
+    return;
+  }
+
+  try {
+    const { userId } = request.body ?? {};
+
+    if (!userId) {
+      response.status(400).json({ error: "Missing userId" });
+      return;
+    }
+
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .select("stripe_customer_id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (profileError) {
+      throw profileError;
+    }
+
+    const customerId = profile?.stripe_customer_id;
+
+    if (!customerId) {
+      response.status(400).json({
+        error:
+          "No billing account found for this user yet. Complete a plan checkout first.",
+      });
+      return;
+    }
+
+    const origin = getOrigin(request);
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${origin}/profile`,
+    });
+
+    response.json({ url: portalSession.url });
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+});
 
 app.post("/api/create-checkout-session", async (request, response) => {
   if (!assertStripeConfigured(response)) {

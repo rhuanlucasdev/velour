@@ -438,8 +438,13 @@ export default function LandingPage() {
         >
           <a
             href="/"
-            className="text-[17px] font-semibold tracking-tight text-white/90"
+            className="inline-flex items-center gap-2 text-[17px] font-semibold tracking-tight text-white/90"
           >
+            <img
+              src="/brand/logo-mark.png"
+              alt="Velour logo"
+              className="h-5 w-5 rounded-sm object-contain"
+            />
             Velour
           </a>
           <AuthButtons />
@@ -830,9 +835,16 @@ export default function LandingPage() {
         </motion.section>
 
         <footer className="flex flex-col items-start justify-between gap-4 border-t border-white/[0.08] pt-6 text-sm text-white/45 md:flex-row md:items-center">
-          <div>
-            <p className="font-semibold text-white/80">Velour</p>
-            <p className="mt-1">Built for creators</p>
+          <div className="inline-flex items-center gap-2">
+            <img
+              src="/brand/logo-mark.png"
+              alt="Velour logo"
+              className="h-5 w-5 rounded-sm object-contain"
+            />
+            <div>
+              <p className="font-semibold text-white/80">Velour</p>
+              <p className="mt-1">Built for creators</p>
+            </div>
           </div>
           <div className="flex items-center gap-5">
             <a
