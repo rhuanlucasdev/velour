@@ -5,7 +5,14 @@ import ToastProvider from "./components/ui/ToastProvider";
 import LandingPage from "./pages/LandingPage";
 
 export default function App() {
-  if (window.location.pathname === "/landing") {
+  if (
+    window.location.pathname === "/" ||
+    window.location.pathname === "/landing"
+  ) {
+    return <LandingPage />;
+  }
+
+  if (window.location.pathname !== "/app") {
     return <LandingPage />;
   }
 

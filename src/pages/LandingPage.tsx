@@ -65,7 +65,7 @@ export default function LandingPage() {
             Velour
           </a>
           <a
-            href="/"
+            href="/app"
             className="rounded-lg border border-white/[0.12] bg-[#151515] px-4 py-2 text-sm font-medium text-white/80 transition-all duration-200 hover:border-[#7C5CFF]/60 hover:text-white hover:shadow-[0_0_18px_rgba(124,92,255,0.28)]"
           >
             Open App
@@ -86,7 +86,7 @@ export default function LandingPage() {
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <a
-              href="/"
+              href="/app"
               className="inline-flex items-center justify-center rounded-lg border border-transparent bg-[#7C5CFF] px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:bg-[#6B4EE0] hover:shadow-[0_0_24px_rgba(124,92,255,0.38)]"
             >
               Open Velour
@@ -193,7 +193,7 @@ export default function LandingPage() {
             Start Writing Better Hooks Today
           </h2>
           <a
-            href="/"
+            href="/app"
             className="mt-6 inline-flex items-center justify-center rounded-lg border border-transparent bg-[#7C5CFF] px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:bg-[#6B4EE0] hover:shadow-[0_0_24px_rgba(124,92,255,0.42)]"
           >
             Launch Velour
