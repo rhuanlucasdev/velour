@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
+import { canUseFeature, getUserPlan } from "../../lib/plans";
 import { useIdeaStore } from "../../store/ideaStore";
+import { useUpgradeStore } from "../../store/upgradeStore";
 import type { Idea } from "../../types/idea";
 import { toast } from "../../utils/toast";
 import PostPreviewModal from "../preview/PostPreviewModal";
@@ -21,6 +24,11 @@ export default function IdeaExpansionModal({
   idea,
   onClose,
 }: IdeaExpansionModalProps) {
+  const { user, profile } = useAuth();
+  const userPlan = getUserPlan({ user, profile });
+  const canUseHookScore = canUseFeature("hookScore", userPlan);
+  const canUseExport = canUseFeature("export", userPlan);
+  const openUpgradeModal = useUpgradeStore((state) => state.openUpgradeModal);
   const [autosaveStatus, setAutosaveStatus] = useState<
     "idle" | "saving" | "saved"
   >("idle");
@@ -67,6 +75,14 @@ export default function IdeaExpansionModal({
   };
 
   const handleCopyHook = async () => {
+    if (!canUseExport) {
+      toast("Export is available on Pro and Creator plans.", {
+        type: "info",
+      });
+      openUpgradeModal();
+      return;
+    }
+
     await navigator.clipboard.writeText(idea.hook);
     toast("Hook copiado para o clipboard ✨", { type: "success" });
   };
@@ -151,7 +167,17 @@ export default function IdeaExpansionModal({
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setIsPreviewOpen(true)}
+            onClick={() => {
+              if (!canUseExport) {
+                toast("Export is available on Pro and Creator plans.", {
+                  type: "info",
+                });
+                openUpgradeModal();
+                return;
+              }
+
+              setIsPreviewOpen(true);
+            }}
           >
             Preview Post
           </Button>
@@ -179,14 +205,37 @@ export default function IdeaExpansionModal({
             placeholder="Capture the opening hook..."
           />
 
-          <HookStrengthIndicator hook={idea.hook} />
+          {canUseHookScore ? (
+            <HookStrengthIndicator hook={idea.hook} />
+          ) : (
+            <div className="rounded-lg border border-purple-400/25 bg-purple-500/10 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[12px] font-medium text-purple-200">
+                    Hook Strength Scoring
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-purple-200/70">
+                    Available on Pro and Creator plans.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={openUpgradeModal}
+                  className="rounded-md border border-purple-300/35 bg-purple-500/20 px-2.5 py-1 text-[11px] font-medium text-purple-100 transition-colors hover:bg-purple-500/30"
+                >
+                  Upgrade
+                </button>
+              </div>
+            </div>
+          )}
 
           <button
             onClick={handleCopyHook}
             disabled={!idea.hook.trim()}
             className="inline-flex items-center rounded-lg border border-white/[0.12] bg-[#1A1A1A] px-3 py-2 text-sm text-white/80 transition duration-200 hover:scale-105 hover:border-violet-400/60 hover:shadow-[0_0_16px_rgba(167,139,250,0.22)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:border-white/[0.12] disabled:hover:shadow-none"
+            aria-label="Copy hook"
           >
-            Copy Hook
+            {canUseExport ? "Copy Hook" : "Copy Hook (Pro)"}
           </button>
 
           <HookBlock

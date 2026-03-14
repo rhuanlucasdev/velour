@@ -27,7 +27,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import Card from "./ui/Card";
 import TagPill from "./ideas/TagPill";
 import { useAuth } from "../context/AuthContext";
-import { FREE_MAX_IDEAS } from "../constants/freemium";
+import { canCreateIdea, getUserPlan, plans } from "../lib/plans";
 import { useUpgradeStore } from "../store/upgradeStore";
 import OnboardingModal from "./onboarding/OnboardingModal";
 
@@ -99,7 +99,7 @@ function SortableIdeaItem({
 }
 
 export default function Dashboard() {
-  const { user, refreshProfile, isPro } = useAuth();
+  const { user, refreshProfile, profile } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -137,8 +137,11 @@ export default function Dashboard() {
     () => ideas.find((idea) => idea.id === activeDragId) ?? null,
     [ideas, activeDragId],
   );
-  const freeIdeasUsed = Math.min(ideas.length, FREE_MAX_IDEAS);
-  const freeUsageRatio = freeIdeasUsed / FREE_MAX_IDEAS;
+  const userPlan = getUserPlan({ user, profile });
+  const maxIdeas = plans[userPlan].maxIdeas;
+  const freeIdeasUsed =
+    maxIdeas === null ? ideas.length : Math.min(ideas.length, maxIdeas);
+  const freeUsageRatio = maxIdeas === null ? 0 : freeIdeasUsed / maxIdeas;
 
   const freeUsageToneClasses =
     freeUsageRatio < 0.5
@@ -247,8 +250,13 @@ export default function Dashboard() {
       return;
     }
 
-    if (!isPro && ideas.length >= FREE_MAX_IDEAS) {
-      toast("Free plan limit reached (10 ideas)", { type: "info" });
+    if (!canCreateIdea(userPlan, ideas.length)) {
+      const ideaLimit = plans[userPlan].maxIdeas;
+
+      toast(
+        `Idea limit reached (${ideaLimit ?? "unlimited"}) for ${userPlan} plan.`,
+        { type: "info" },
+      );
       openUpgradeModal();
       return;
     }
@@ -287,11 +295,12 @@ export default function Dashboard() {
         subtitle={tabSubtitle}
         actions={
           <>
-            {activeTab === "ideas" && !isPro && !isLoading ? (
+            {activeTab === "ideas" && maxIdeas !== null && !isLoading ? (
               <span
                 className={`rounded-md border px-2.5 py-1 text-[11px] font-medium ${freeUsageToneClasses}`}
               >
-                Free: {freeIdeasUsed}/{FREE_MAX_IDEAS} ideas
+                {userPlan === "free" ? "Free" : "Plan"}: {freeIdeasUsed}/
+                {maxIdeas} ideas
               </span>
             ) : null}
 

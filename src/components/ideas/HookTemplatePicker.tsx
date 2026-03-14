@@ -1,6 +1,7 @@
 import { hookTemplates } from "../../data/hookTemplates";
 import { FREE_TEMPLATE_LIMIT } from "../../constants/freemium";
 import { useAuth } from "../../context/AuthContext";
+import { canUseFeature, getUserPlan } from "../../lib/plans";
 import { useIdeaStore } from "../../store/ideaStore";
 import { useUpgradeStore } from "../../store/upgradeStore";
 
@@ -11,7 +12,8 @@ interface HookTemplatePickerProps {
 export default function HookTemplatePicker({
   ideaId,
 }: HookTemplatePickerProps) {
-  const { isPro } = useAuth();
+  const { user, profile } = useAuth();
+  const userPlan = getUserPlan({ user, profile });
   const updateIdea = useIdeaStore((state) => state.updateIdea);
   const openUpgradeModal = useUpgradeStore((state) => state.openUpgradeModal);
 
@@ -22,7 +24,8 @@ export default function HookTemplatePicker({
       </p>
       <div className="flex flex-wrap gap-2">
         {hookTemplates.map((template, index) => {
-          const isLocked = !isPro && index >= FREE_TEMPLATE_LIMIT;
+          const hasAllTemplates = canUseFeature("templates", userPlan);
+          const isLocked = !hasAllTemplates && index >= FREE_TEMPLATE_LIMIT;
 
           return (
             <button
