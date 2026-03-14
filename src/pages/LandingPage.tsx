@@ -57,6 +57,25 @@ const steps = [
   },
 ];
 
+const pricingPlans = [
+  {
+    name: "Starter",
+    price: "Free",
+    description: "Perfect to start organizing ideas and writing better hooks.",
+  },
+  {
+    name: "Creator",
+    price: "$12/mo",
+    description:
+      "Advanced workflow with previews, templates, and faster output.",
+  },
+  {
+    name: "Pro Team",
+    price: "$29/mo",
+    description: "Collaboration-ready setup for content teams and agencies.",
+  },
+];
+
 function StepIcon({ index }: { index: number }) {
   return (
     <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/[0.12] bg-[#1A1A1A] text-sm font-semibold text-[#A78FFF]">
@@ -219,7 +238,14 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="features" className="mb-24">
+        <motion.section
+          id="features"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          viewport={{ once: true, amount: 0.2 }}
+          className="mb-24"
+        >
           <div className="mb-6">
             <h2 className="text-2xl font-semibold tracking-tight text-white/95 md:text-3xl">
               Product Features
@@ -241,20 +267,20 @@ export default function LandingPage() {
               />
             ))}
           </div>
-        </section>
+        </motion.section>
 
-        <section className="relative mb-24">
+        <motion.section
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          viewport={{ once: true, amount: 0.2 }}
+          className="relative mb-24"
+        >
           <div className="pointer-events-none absolute inset-0 -z-10 flex items-center justify-center overflow-hidden">
             <div className="h-[320px] w-[720px] rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.28)_0%,rgba(99,102,241,0.18)_35%,rgba(59,130,246,0)_70%)] blur-3xl" />
           </div>
 
-          <motion.div
-            initial={{ y: 40, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="mx-auto max-w-5xl"
-          >
+          <div className="mx-auto max-w-5xl">
             <motion.div
               onMouseMove={handlePreviewMouseMove}
               onMouseLeave={handlePreviewMouseLeave}
@@ -303,13 +329,19 @@ export default function LandingPage() {
                 </div>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
           <p className="mt-4 text-center text-sm text-white/50">
             Organize, write and refine your content ideas in one place.
           </p>
-        </section>
+        </motion.section>
 
-        <section className="mb-24">
+        <motion.section
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          viewport={{ once: true, amount: 0.2 }}
+          className="mb-24"
+        >
           <h2 className="text-2xl font-semibold tracking-tight text-white/95 md:text-3xl">
             How It Works
           </h2>
@@ -329,9 +361,51 @@ export default function LandingPage() {
               </article>
             ))}
           </div>
-        </section>
+        </motion.section>
 
-        <section className="mb-20 rounded-2xl border border-white/[0.1] bg-[#121212] px-6 py-10 text-center shadow-[0_20px_50px_rgba(0,0,0,0.45)] md:px-8">
+        <motion.section
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          viewport={{ once: true, amount: 0.2 }}
+          className="mb-24"
+        >
+          <h2 className="text-2xl font-semibold tracking-tight text-white/95 md:text-3xl">
+            Pricing
+          </h2>
+          <p className="mt-2 text-sm text-white/50 md:text-base">
+            Choose the plan that matches your content velocity.
+          </p>
+
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+            {pricingPlans.map((plan, index) => (
+              <article
+                key={plan.name}
+                className={`rounded-2xl border p-5 ${
+                  index === 1
+                    ? "border-[#7C5CFF]/45 bg-[#191424] shadow-[0_0_25px_rgba(124,92,255,0.18)]"
+                    : "border-white/[0.08] bg-[#141414]"
+                }`}
+              >
+                <p className="text-sm font-medium text-white/70">{plan.name}</p>
+                <p className="mt-2 text-2xl font-semibold tracking-tight text-white/95">
+                  {plan.price}
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-white/50">
+                  {plan.description}
+                </p>
+              </article>
+            ))}
+          </div>
+        </motion.section>
+
+        <motion.section
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          viewport={{ once: true, amount: 0.2 }}
+          className="mb-20 rounded-2xl border border-white/[0.1] bg-[#121212] px-6 py-10 text-center shadow-[0_20px_50px_rgba(0,0,0,0.45)] md:px-8"
+        >
           <h2 className="text-3xl font-semibold tracking-tight text-white md:text-4xl">
             Start Writing Better Hooks Today
           </h2>
@@ -341,7 +415,7 @@ export default function LandingPage() {
           >
             Launch Velour
           </a>
-        </section>
+        </motion.section>
 
         <footer className="flex flex-col items-start justify-between gap-4 border-t border-white/[0.08] pt-6 text-sm text-white/45 md:flex-row md:items-center">
           <div>
