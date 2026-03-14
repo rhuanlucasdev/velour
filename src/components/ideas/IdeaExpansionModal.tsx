@@ -11,6 +11,7 @@ import AutosaveIndicator from "../ui/AutosaveIndicator";
 import Button from "../ui/Button";
 import HookBlock from "./HookBlock";
 import HookStrengthIndicator from "./HookStrengthIndicator";
+import HookAnalyticsPanel from "./HookAnalyticsPanel";
 import HookTemplatePicker from "./HookTemplatePicker";
 import TagInput from "./TagInput";
 import TagPill from "./TagPill";
@@ -28,6 +29,7 @@ export default function IdeaExpansionModal({
   const userPlan = getUserPlan({ user, profile });
   const canUseHookScore = canUseFeature("hookScore", userPlan);
   const canUseExport = canUseFeature("export", userPlan);
+  const canUseAnalytics = canUseFeature("analytics", userPlan);
   const openUpgradeModal = useUpgradeStore((state) => state.openUpgradeModal);
   const [autosaveStatus, setAutosaveStatus] = useState<
     "idle" | "saving" | "saved"
@@ -228,6 +230,8 @@ export default function IdeaExpansionModal({
               </div>
             </div>
           )}
+
+          {canUseAnalytics ? <HookAnalyticsPanel hook={idea.hook} /> : null}
 
           <button
             onClick={handleCopyHook}
