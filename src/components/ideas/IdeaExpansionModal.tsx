@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useIdeaStore } from "../../store/ideaStore";
 import type { Idea } from "../../types/idea";
 import { toast } from "../../utils/toast";
 import PostPreviewModal from "../preview/PostPreviewModal";
+import AutosaveIndicator from "../ui/AutosaveIndicator";
 import Button from "../ui/Button";
 import HookBlock from "./HookBlock";
 import HookStrengthIndicator from "./HookStrengthIndicator";
@@ -20,10 +21,30 @@ export default function IdeaExpansionModal({
   idea,
   onClose,
 }: IdeaExpansionModalProps) {
+  const [autosaveStatus, setAutosaveStatus] = useState<
+    "idle" | "saving" | "saved"
+  >("idle");
   const updateIdea = useIdeaStore((state) => state.updateIdea);
   const deleteIdea = useIdeaStore((state) => state.deleteIdea);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tags = idea.tags ?? [];
+
+  const updateIdeaWithAutosave = (
+    patch: Partial<Omit<Idea, "id" | "createdAt">>,
+  ) => {
+    setAutosaveStatus("saving");
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    updateIdea(idea.id, patch);
+
+    saveTimeoutRef.current = setTimeout(() => {
+      setAutosaveStatus("saved");
+    }, 700);
+  };
 
   const handleAddTag = (newTag: string) => {
     const normalizedTag = newTag.trim();
@@ -39,7 +60,7 @@ export default function IdeaExpansionModal({
       return;
     }
 
-    updateIdea(idea.id, {
+    updateIdeaWithAutosave({
       tags: [...tags, normalizedTag],
     });
     toast("Tag added", { type: "success" });
@@ -56,6 +77,14 @@ export default function IdeaExpansionModal({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
 
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-sm"
@@ -71,15 +100,18 @@ export default function IdeaExpansionModal({
         onClick={(event) => event.stopPropagation()}
         className="w-full max-w-[800px] max-h-[85vh] overflow-y-auto rounded-2xl border border-white/[0.08] bg-[#121212]/90 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
       >
-        <input
-          value={idea.title}
-          onChange={(event) =>
-            updateIdea(idea.id, { title: event.target.value })
-          }
-          className="mb-6 w-full bg-transparent text-[26px] font-semibold tracking-tight text-white/95 outline-none placeholder:text-white/30"
-          placeholder="Untitled Idea"
-          aria-label="Idea title"
-        />
+        <div className="mb-6 flex items-start justify-between gap-3">
+          <input
+            value={idea.title}
+            onChange={(event) =>
+              updateIdeaWithAutosave({ title: event.target.value })
+            }
+            className="w-full bg-transparent pr-2 text-[26px] font-semibold tracking-tight text-white/95 outline-none placeholder:text-white/30"
+            placeholder="Untitled Idea"
+            aria-label="Idea title"
+          />
+          <AutosaveIndicator status={autosaveStatus} />
+        </div>
 
         <div className="mb-6 flex items-center justify-between">
           <button
@@ -138,7 +170,7 @@ export default function IdeaExpansionModal({
           <HookBlock
             title="Hook"
             value={idea.hook}
-            onChange={(value) => updateIdea(idea.id, { hook: value })}
+            onChange={(value) => updateIdeaWithAutosave({ hook: value })}
             placeholder="Capture the opening hook..."
           />
 
@@ -147,21 +179,21 @@ export default function IdeaExpansionModal({
           <HookBlock
             title="Insight"
             value={idea.insight}
-            onChange={(value) => updateIdea(idea.id, { insight: value })}
+            onChange={(value) => updateIdeaWithAutosave({ insight: value })}
             placeholder="Describe the core insight..."
           />
 
           <HookBlock
             title="Twist"
             value={idea.twist}
-            onChange={(value) => updateIdea(idea.id, { twist: value })}
+            onChange={(value) => updateIdeaWithAutosave({ twist: value })}
             placeholder="Add an unexpected angle..."
           />
 
           <HookBlock
             title="CTA"
             value={idea.cta}
-            onChange={(value) => updateIdea(idea.id, { cta: value })}
+            onChange={(value) => updateIdeaWithAutosave({ cta: value })}
             placeholder="Define the call to action..."
           />
         </div>
