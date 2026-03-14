@@ -1,4 +1,5 @@
 import AuroraBackground from "../components/ui/AuroraBackground";
+import AuthButtons from "../components/auth/AuthButtons";
 import LiveActivityFeed from "../components/LiveActivityFeed";
 import LiveHookDemo from "../components/LiveHookDemo";
 import SocialProof from "../components/SocialProof";
@@ -441,12 +442,7 @@ export default function LandingPage() {
           >
             Velour
           </a>
-          <a
-            href="/app"
-            className="rounded-lg border border-white/[0.12] bg-[#151515] px-4 py-2 text-sm font-medium text-white/80 transition-all duration-200 hover:border-[#7C5CFF]/60 hover:text-white hover:shadow-[0_0_18px_rgba(124,92,255,0.28)]"
-          >
-            Open App
-          </a>
+          <AuthButtons />
         </motion.header>
 
         <section className="relative isolate mx-auto mb-24 max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-white/5 px-16 py-20 text-center backdrop-blur-xl shadow-[inset_0_0_40px_rgba(139,92,246,0.08),0_20px_80px_rgba(139,92,246,0.15)] before:pointer-events-none before:absolute before:inset-0 before:rounded-3xl before:p-px before:opacity-70 before:content-[''] before:bg-gradient-to-br before:from-purple-300/40 before:via-indigo-300/20 before:to-blue-300/30 before:[-webkit-mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] before:[-webkit-mask-composite:xor]">

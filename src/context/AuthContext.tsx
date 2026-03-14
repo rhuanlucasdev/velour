@@ -22,6 +22,13 @@ interface AuthContextValue {
   isPro: boolean;
   isLoading: boolean;
   login: (provider: Provider) => Promise<void>;
+  loginWithPassword: (email: string, password: string) => Promise<void>;
+  registerWithPassword: (
+    name: string,
+    email: string,
+    password: string,
+  ) => Promise<{ requiresEmailConfirmation: boolean }>;
+  requestPasswordReset: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -115,6 +122,54 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
   }, []);
 
+  const loginWithPassword = useCallback(
+    async (email: string, password: string) => {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+    },
+    [],
+  );
+
+  const registerWithPassword = useCallback(
+    async (name: string, email: string, password: string) => {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/app`,
+          data: {
+            full_name: name,
+          },
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      return {
+        requiresEmailConfirmation: !data.session,
+      };
+    },
+    [],
+  );
+
+  const requestPasswordReset = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/login`,
+    });
+
+    if (error) {
+      throw error;
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     await supabase.auth.signOut();
   }, []);
@@ -127,10 +182,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isPro: profile?.is_pro ?? false,
       isLoading,
       login,
+      loginWithPassword,
+      registerWithPassword,
+      requestPasswordReset,
       logout,
       refreshProfile,
     }),
-    [isLoading, profile, session],
+    [
+      isLoading,
+      login,
+      loginWithPassword,
+      logout,
+      profile,
+      refreshProfile,
+      registerWithPassword,
+      requestPasswordReset,
+      session,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
