@@ -99,6 +99,7 @@ const pricingPlans = [
 ];
 
 const heroWords = ["Hooks", "Threads", "Posts", "Content"];
+const creatorPlatforms = ["Twitter", "LinkedIn", "Substack", "Medium", "Ghost"];
 
 function StepIcon({ index }: { index: number }) {
   return (
@@ -384,6 +385,22 @@ export default function LandingPage() {
                 View Features
               </a>
             </div>
+          </div>
+        </section>
+
+        <section className="mb-24 text-center">
+          <p className="text-sm font-medium text-white/55 md:text-base">
+            Used by creators publishing on
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-10">
+            {creatorPlatforms.map((platform) => (
+              <span
+                key={platform}
+                className="grayscale opacity-50 transition-opacity duration-200 hover:opacity-100"
+              >
+                {platform}
+              </span>
+            ))}
           </div>
         </section>
 
