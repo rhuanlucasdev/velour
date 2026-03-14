@@ -13,6 +13,7 @@ import Dashboard from "./components/Dashboard";
 import ToastProvider from "./components/ui/ToastProvider";
 import { useAuth } from "./context/AuthContext";
 import Calendar from "./pages/Calendar";
+import CreatorProfile from "./pages/CreatorProfile";
 import ForgotPassword from "./pages/ForgotPassword";
 import LandingPage from "./pages/LandingPage";
 import Library from "./pages/Library";
@@ -117,6 +118,7 @@ export default function App() {
         element={session ? <Navigate to="/app" replace /> : <ForgotPassword />}
       />
       <Route path="/logout" element={<Logout />} />
+      <Route path="/creator/:username" element={<CreatorProfile />} />
       <Route
         path="/profile"
         element={

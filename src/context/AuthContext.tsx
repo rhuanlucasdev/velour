@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import type { Provider, Session, User } from "@supabase/supabase-js";
+import { createCreatorProfilePayload } from "../lib/creatorProfile";
 import { supabase } from "../lib/supabase";
 
 interface UserProfile {
@@ -44,6 +45,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const syncCreatorProfile = useCallback(async (nextUser: User | null) => {
+    if (!nextUser) {
+      return;
+    }
+
+    await supabase
+      .from("creator_profiles")
+      .upsert(createCreatorProfilePayload(nextUser), { onConflict: "id" });
+  }, []);
 
   const refreshUser = useCallback(async () => {
     const { data, error } = await supabase.auth.getUser();
@@ -95,6 +106,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(data.session?.user ?? null);
 
         if (data.session?.user) {
+          void syncCreatorProfile(data.session.user);
+        }
+
+        if (data.session?.user) {
           const { data: userData, error: userError } =
             await supabase.auth.getUser();
 
@@ -126,6 +141,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(nextSession?.user ?? null);
 
       if (nextSession?.user) {
+        void syncCreatorProfile(nextSession.user);
+      }
+
+      if (nextSession?.user) {
         void refreshUser();
       }
 
@@ -140,7 +159,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [refreshUser, syncCreatorProfile]);
 
   useEffect(() => {
     void refreshProfile();
