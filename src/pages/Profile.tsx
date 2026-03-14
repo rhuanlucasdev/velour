@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
+import { createDefaultUsername } from "../lib/creatorProfile";
 import { getUserPlan } from "../lib/plans";
 import CreatorEarlyAccessBadge from "../components/ui/CreatorEarlyAccessBadge";
 import { toast } from "../utils/toast";
@@ -33,6 +34,7 @@ export default function Profile() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [creatorUsername, setCreatorUsername] = useState<string | null>(null);
 
   const providers =
     (user?.app_metadata?.providers as string[] | undefined) ?? [];
@@ -46,6 +48,30 @@ export default function Profile() {
     setAvatarPreview(avatarUrl);
     setAvatarLoadError(false);
   }, [avatarUrl]);
+
+  useEffect(() => {
+    const loadCreatorUsername = async () => {
+      if (!user?.id) {
+        setCreatorUsername(null);
+        return;
+      }
+
+      const { data } = await supabase
+        .from("creator_profiles")
+        .select("username")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (data?.username) {
+        setCreatorUsername(data.username as string);
+        return;
+      }
+
+      setCreatorUsername(createDefaultUsername(user));
+    };
+
+    void loadCreatorUsername();
+  }, [user?.id]);
 
   const handleSaveName = async () => {
     if (!displayName.trim() || displayName.trim() === currentDisplayName) {
@@ -408,6 +434,35 @@ export default function Profile() {
               </span>
             </div>
           </div>
+
+          {creatorUsername ? (
+            <div className="relative z-10 mt-4 border-t border-white/[0.06] pt-4">
+              <button
+                type="button"
+                onClick={() => navigate(`/creator/${creatorUsername}`)}
+                className="inline-flex items-center gap-2 rounded-lg border border-[#7C5CFF]/35 bg-[#7C5CFF]/12 px-3 py-2 text-xs font-semibold text-[#D6CAFF] transition-all duration-150 hover:border-[#A288FF]/45 hover:bg-[#7C5CFF]/2"
+              >
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                  <circle
+                    cx="8"
+                    cy="5"
+                    r="2.2"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeOpacity="0.9"
+                  />
+                  <path
+                    d="M3 13c0-2 2.1-3.6 5-3.6s5 1.6 5 3.6"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeOpacity="0.9"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                View my Creator Profile
+              </button>
+            </div>
+          ) : null}
         </motion.section>
 
         {/* ── Plan section ── */}

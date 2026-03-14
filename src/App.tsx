@@ -14,6 +14,7 @@ import ToastProvider from "./components/ui/ToastProvider";
 import { useAuth } from "./context/AuthContext";
 import Calendar from "./pages/Calendar";
 import CreatorProfile from "./pages/CreatorProfile";
+import Creators from "./pages/Creators";
 import ForgotPassword from "./pages/ForgotPassword";
 import LandingPage from "./pages/LandingPage";
 import Library from "./pages/Library";
@@ -33,13 +34,15 @@ export default function App() {
   const isPricingRoute = pathname === "/pricing";
   const isCalendarRoute = pathname === "/calendar";
   const isLibraryRoute = pathname === "/library";
+  const isCreatorsRoute = pathname === "/creators";
   const isAppRoute =
     pathname === "/app" ||
     pathname === "/dashboard" ||
     isProfileRoute ||
     isPricingRoute ||
     isCalendarRoute ||
-    isLibraryRoute;
+    isLibraryRoute ||
+    isCreatorsRoute;
   const isLoginRoute = pathname === "/login";
   const isRegisterRoute = pathname === "/register";
   const isForgotPasswordRoute = pathname === "/forgot-password";
@@ -174,6 +177,23 @@ export default function App() {
             <>
               <AppLayout>
                 <Library />
+              </AppLayout>
+              <CommandPalette />
+              <UpgradeModal />
+              <ToastProvider />
+            </>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/creators"
+        element={
+          session ? (
+            <>
+              <AppLayout>
+                <Creators />
               </AppLayout>
               <CommandPalette />
               <UpgradeModal />

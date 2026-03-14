@@ -12,6 +12,7 @@ interface CreatorPublicProfile {
   username: string;
   display_name: string;
   avatar_url: string | null;
+  plan?: "free" | "pro" | "creator" | null;
 }
 
 interface CreatorHook {
@@ -34,6 +35,7 @@ export default function CreatorProfile() {
   const [followersCount, setFollowersCount] = useState(0);
   const [creator, setCreator] = useState<CreatorPublicProfile | null>(null);
   const [hooks, setHooks] = useState<CreatorHook[]>([]);
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
 
   const totalHooks = hooks.length;
   const totalLikes = useMemo(
@@ -44,6 +46,13 @@ export default function CreatorProfile() {
     () => hooks.reduce((sum, hook) => sum + (hook.copies ?? 0), 0),
     [hooks],
   );
+  const creatorPlan = creator?.plan ?? "free";
+  const creatorPlanLabel =
+    creatorPlan === "creator"
+      ? "Creator"
+      : creatorPlan === "pro"
+        ? "Pro"
+        : "Free";
 
   const canFollow = !!user?.id && !!creator?.id && user.id !== creator.id;
 
@@ -55,11 +64,33 @@ export default function CreatorProfile() {
 
     setIsLoading(true);
 
-    const { data: profile, error: profileError } = await supabase
-      .from("creator_profiles")
-      .select("id, username, display_name, avatar_url")
-      .eq("username", username)
-      .maybeSingle();
+    const { data: profileWithPlan, error: profileWithPlanError } =
+      await supabase
+        .from("creator_profiles")
+        .select("id, username, display_name, avatar_url, plan")
+        .eq("username", username)
+        .maybeSingle();
+
+    let profile: CreatorPublicProfile | null =
+      (profileWithPlan as CreatorPublicProfile | null) ?? null;
+    let profileError = profileWithPlanError;
+
+    if (profileWithPlanError?.message?.toLowerCase().includes("plan")) {
+      const { data: legacyProfile, error: legacyProfileError } = await supabase
+        .from("creator_profiles")
+        .select("id, username, display_name, avatar_url")
+        .eq("username", username)
+        .maybeSingle();
+
+      if (legacyProfileError) {
+        profileError = legacyProfileError;
+      } else {
+        profileError = null;
+        profile = legacyProfile
+          ? ({ ...legacyProfile, plan: "free" } as CreatorPublicProfile)
+          : null;
+      }
+    }
 
     if (profileError || !profile) {
       setCreator(null);
@@ -117,6 +148,10 @@ export default function CreatorProfile() {
     void loadCreatorProfile();
   }, [username, user?.id]);
 
+  useEffect(() => {
+    setAvatarLoadError(false);
+  }, [creator?.avatar_url]);
+
   const handleToggleFollow = async () => {
     if (!creator) {
       return;
@@ -172,9 +207,11 @@ export default function CreatorProfile() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#090909] py-10">
-      <div
+      <motion.div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
+        animate={{ opacity: [0.88, 1, 0.88] }}
+        transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
         style={{
           backgroundImage:
             "radial-gradient(circle at 12% 0%, rgba(124,92,255,0.2), transparent 36%), radial-gradient(circle at 92% 95%, rgba(124,92,255,0.14), transparent 34%)",
@@ -182,29 +219,55 @@ export default function CreatorProfile() {
       />
 
       <Container className="relative z-10 space-y-6">
-        <div className="flex items-center justify-between">
-          <Link
-            to="/library"
-            className="rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2 text-xs font-medium text-white/75 transition-colors hover:border-white/[0.16] hover:text-white"
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+          className="flex items-center justify-between"
+        >
+          <motion.div whileHover={{ y: -1 }} transition={{ duration: 0.16 }}>
+            <Link
+              to="/creators"
+              className="rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2 text-xs font-medium text-white/75 transition-colors hover:border-white/[0.16] hover:text-white"
+            >
+              ← Back to Creators
+            </Link>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.22, delay: 0.04, ease: "easeOut" }}
+            whileHover={{ scale: 1.02 }}
           >
-            ← Back to Library
-          </Link>
-          <CreatorEarlyAccessBadge compact />
-        </div>
+            <CreatorEarlyAccessBadge compact />
+          </motion.div>
+        </motion.div>
 
         {isLoading ? (
-          <section className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6 text-sm text-white/55 backdrop-blur-xl">
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28, ease: "easeOut" }}
+            className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6 text-sm text-white/55 backdrop-blur-xl"
+          >
             Loading creator profile...
-          </section>
+          </motion.section>
         ) : !creator ? (
-          <section className="rounded-2xl border border-dashed border-white/[0.15] bg-white/[0.02] p-8 text-center text-sm text-white/50 backdrop-blur-xl">
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28, ease: "easeOut" }}
+            className="rounded-2xl border border-dashed border-white/[0.15] bg-white/[0.02] p-8 text-center text-sm text-white/50 backdrop-blur-xl"
+          >
             Creator not found.
-          </section>
+          </motion.section>
         ) : (
           <>
             <motion.section
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -1 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
               className="relative overflow-hidden rounded-2xl border border-white/[0.1] bg-white/[0.03] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
             >
@@ -218,17 +281,27 @@ export default function CreatorProfile() {
               />
 
               <div className="relative z-10 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                <div className="flex items-center gap-4">
-                  {creator.avatar_url ? (
-                    <img
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.24, delay: 0.06, ease: "easeOut" }}
+                  className="flex items-center gap-4"
+                >
+                  {creator.avatar_url && !avatarLoadError ? (
+                    <motion.img
+                      whileHover={{ scale: 1.03 }}
                       src={creator.avatar_url}
                       alt={creator.display_name}
+                      onError={() => setAvatarLoadError(true)}
                       className="h-16 w-16 rounded-full border border-[#8C71FF]/40 object-cover shadow-[0_0_24px_rgba(124,92,255,0.32)]"
                     />
                   ) : (
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#8C71FF]/40 bg-[#7C5CFF]/15 text-xl font-semibold text-[#DACFFF]">
+                    <motion.div
+                      whileHover={{ scale: 1.03 }}
+                      className="flex h-16 w-16 items-center justify-center rounded-full border border-[#8C71FF]/40 bg-[#7C5CFF]/15 text-xl font-semibold text-[#DACFFF]"
+                    >
                       {fallbackInitial}
-                    </div>
+                    </motion.div>
                   )}
 
                   <div>
@@ -237,12 +310,30 @@ export default function CreatorProfile() {
                     </p>
                     <p className="text-sm text-white/45">@{creator.username}</p>
                   </div>
-                </div>
+                </motion.div>
 
-                <button
+                <motion.button
                   type="button"
                   onClick={() => void handleToggleFollow()}
                   disabled={!canFollow || isTogglingFollow}
+                  whileHover={{ y: -1, scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  animate={
+                    isFollowing
+                      ? {
+                          boxShadow: [
+                            "0 0 0 rgba(16,185,129,0)",
+                            "0 0 20px rgba(16,185,129,0.28)",
+                            "0 0 0 rgba(16,185,129,0)",
+                          ],
+                        }
+                      : undefined
+                  }
+                  transition={
+                    isFollowing
+                      ? { duration: 2.4, repeat: Infinity, ease: "easeInOut" }
+                      : { duration: 0.15 }
+                  }
                   className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-55 ${
                     isFollowing
                       ? "border-emerald-400/35 bg-emerald-500/12 text-emerald-200"
@@ -254,54 +345,93 @@ export default function CreatorProfile() {
                     : isFollowing
                       ? "Following"
                       : "Follow"}
-                </button>
+                </motion.button>
               </div>
 
               <div className="relative z-10 mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                <div className="rounded-xl border border-white/[0.1] bg-white/[0.03] p-3">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.22, delay: 0.08 }}
+                  whileHover={{ y: -2, scale: 1.015 }}
+                  className="rounded-xl border border-white/[0.1] bg-white/[0.03] p-3"
+                >
                   <p className="text-[11px] uppercase tracking-[0.08em] text-white/45">
                     Total Hooks
                   </p>
                   <p className="mt-1 text-xl font-semibold text-white/92">
                     {totalHooks}
                   </p>
-                </div>
-                <div className="rounded-xl border border-white/[0.1] bg-white/[0.03] p-3">
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.22, delay: 0.11 }}
+                  whileHover={{ y: -2, scale: 1.015 }}
+                  className="rounded-xl border border-white/[0.1] bg-white/[0.03] p-3"
+                >
                   <p className="text-[11px] uppercase tracking-[0.08em] text-white/45">
                     Total Likes
                   </p>
                   <p className="mt-1 text-xl font-semibold text-white/92">
                     {totalLikes}
                   </p>
-                </div>
-                <div className="rounded-xl border border-white/[0.1] bg-white/[0.03] p-3">
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.22, delay: 0.14 }}
+                  whileHover={{ y: -2, scale: 1.015 }}
+                  className="rounded-xl border border-white/[0.1] bg-white/[0.03] p-3"
+                >
                   <p className="text-[11px] uppercase tracking-[0.08em] text-white/45">
                     Total Copies
                   </p>
                   <p className="mt-1 text-xl font-semibold text-white/92">
                     {totalCopies}
                   </p>
-                </div>
-                <div className="rounded-xl border border-white/[0.1] bg-white/[0.03] p-3">
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.22, delay: 0.17 }}
+                  whileHover={{ y: -2, scale: 1.015 }}
+                  className="rounded-xl border border-white/[0.1] bg-white/[0.03] p-3"
+                >
                   <p className="text-[11px] uppercase tracking-[0.08em] text-white/45">
                     Followers
                   </p>
                   <p className="mt-1 text-xl font-semibold text-white/92">
                     {followersCount}
                   </p>
-                </div>
-                <div className="rounded-xl border border-white/[0.1] bg-white/[0.03] p-3">
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.22, delay: 0.2 }}
+                  whileHover={{ y: -2, scale: 1.015 }}
+                  className="rounded-xl border border-white/[0.1] bg-white/[0.03] p-3"
+                >
                   <p className="text-[11px] uppercase tracking-[0.08em] text-white/45">
-                    Creator Plan
+                    Velour Plan
                   </p>
                   <p className="mt-1 text-sm font-semibold text-[#D7C9FF]">
-                    Early Access
+                    {creatorPlanLabel}
                   </p>
-                </div>
+                </motion.div>
               </div>
             </motion.section>
 
-            <section className="space-y-3">
+            <motion.section
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.28, delay: 0.06, ease: "easeOut" }}
+              className="space-y-3"
+            >
               <div className="flex items-end justify-between">
                 <h2 className="text-base font-semibold text-white/90">
                   Creator Hooks
@@ -320,7 +450,7 @@ export default function CreatorProfile() {
                       key={hook.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      whileHover={{ y: -2 }}
+                      whileHover={{ y: -3, scale: 1.01 }}
                       transition={{ duration: 0.24, ease: "easeOut" }}
                       className="group relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 backdrop-blur-xl"
                     >
@@ -350,7 +480,7 @@ export default function CreatorProfile() {
                   ))}
                 </div>
               )}
-            </section>
+            </motion.section>
           </>
         )}
       </Container>

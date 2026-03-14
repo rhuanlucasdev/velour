@@ -4,12 +4,14 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import type { Provider, Session, User } from "@supabase/supabase-js";
 import { createCreatorProfilePayload } from "../lib/creatorProfile";
 import { supabase } from "../lib/supabase";
+import { toast } from "../utils/toast";
 
 interface UserProfile {
   id: string;
@@ -45,15 +47,101 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const syncingCreatorProfileIdsRef = useRef<Set<string>>(new Set());
+  const announcedCreatorProfileIdsRef = useRef<Set<string>>(new Set());
 
   const syncCreatorProfile = useCallback(async (nextUser: User | null) => {
     if (!nextUser) {
       return;
     }
 
-    await supabase
-      .from("creator_profiles")
-      .upsert(createCreatorProfilePayload(nextUser), { onConflict: "id" });
+    if (syncingCreatorProfileIdsRef.current.has(nextUser.id)) {
+      return;
+    }
+
+    syncingCreatorProfileIdsRef.current.add(nextUser.id);
+
+    try {
+      const { data: existingProfile, error: existingProfileError } =
+        await supabase
+          .from("creator_profiles")
+          .select("id, plan")
+          .eq("id", nextUser.id)
+          .maybeSingle();
+
+      if (existingProfileError) {
+        return;
+      }
+
+      const { data: canonicalUserData } = await supabase.auth.getUser();
+      const canonicalUser = canonicalUserData.user ?? nextUser;
+
+      const { data: billingProfile } = await supabase
+        .from("profiles")
+        .select("is_pro")
+        .eq("id", nextUser.id)
+        .maybeSingle();
+
+      const payload = createCreatorProfilePayload(canonicalUser, {
+        isPro: billingProfile?.is_pro ?? false,
+      });
+
+      const existingPlan =
+        typeof existingProfile?.plan === "string"
+          ? existingProfile.plan.toLowerCase()
+          : null;
+
+      const hasExplicitPlanInMetadata = [
+        canonicalUser.user_metadata?.plan,
+        canonicalUser.app_metadata?.plan,
+      ].some((value) =>
+        ["free", "pro", "creator"].includes(String(value ?? "").toLowerCase()),
+      );
+
+      if (
+        !hasExplicitPlanInMetadata &&
+        existingPlan &&
+        ["pro", "creator"].includes(existingPlan) &&
+        payload.plan === "free"
+      ) {
+        payload.plan = existingPlan as "pro" | "creator";
+      }
+
+      const { error: upsertError } = await supabase
+        .from("creator_profiles")
+        .upsert(payload, { onConflict: "id" });
+
+      if (upsertError) {
+        const shouldRetryWithoutPlan = upsertError.message
+          .toLowerCase()
+          .includes("plan");
+
+        if (!shouldRetryWithoutPlan) {
+          return;
+        }
+
+        const { plan: _ignoredPlan, ...legacyPayload } = payload;
+        const { error: legacyUpsertError } = await supabase
+          .from("creator_profiles")
+          .upsert(legacyPayload, { onConflict: "id" });
+
+        if (legacyUpsertError) {
+          return;
+        }
+      }
+
+      if (
+        !existingProfile &&
+        !announcedCreatorProfileIdsRef.current.has(nextUser.id)
+      ) {
+        announcedCreatorProfileIdsRef.current.add(nextUser.id);
+        toast("New feature unlocked: you now have a Creator Profile.", {
+          type: "success",
+        });
+      }
+    } finally {
+      syncingCreatorProfileIdsRef.current.delete(nextUser.id);
+    }
   }, []);
 
   const refreshUser = useCallback(async () => {

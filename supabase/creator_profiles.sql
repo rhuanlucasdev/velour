@@ -5,9 +5,36 @@ create table if not exists public.creator_profiles (
   username text not null unique,
   display_name text not null,
   avatar_url text,
+  plan text not null default 'free',
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+alter table public.creator_profiles
+  add column if not exists plan text;
+
+update public.creator_profiles
+set plan = 'free'
+where plan is null;
+
+alter table public.creator_profiles
+  alter column plan set default 'free';
+
+alter table public.creator_profiles
+  alter column plan set not null;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'creator_profiles_plan_valid'
+  ) then
+    alter table public.creator_profiles
+      add constraint creator_profiles_plan_valid
+      check (plan in ('free', 'pro', 'creator'));
+  end if;
+end $$;
 
 create index if not exists creator_profiles_username_idx
   on public.creator_profiles (username);
