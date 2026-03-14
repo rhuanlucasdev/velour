@@ -13,6 +13,7 @@ import Button from "../ui/Button";
 import HookBlock from "./HookBlock";
 import HookStrengthIndicator from "./HookStrengthIndicator";
 import HookAnalyticsPanel from "./HookAnalyticsPanel";
+import HookShareCard from "./HookShareCard";
 import HookTemplatePicker from "./HookTemplatePicker";
 import TagInput from "./TagInput";
 import TagPill from "./TagPill";
@@ -294,6 +295,8 @@ export default function IdeaExpansionModal({
               {isSavingToLibrary ? "Saving..." : "Save to Library"}
             </button>
           </div>
+
+          <HookShareCard hook={idea.hook} />
 
           <HookBlock
             title="Insight"
