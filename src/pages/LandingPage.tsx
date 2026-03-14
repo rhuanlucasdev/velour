@@ -1,4 +1,5 @@
 import AuroraBackground from "../components/ui/AuroraBackground";
+import LiveActivityFeed from "../components/LiveActivityFeed";
 import LiveHookDemo from "../components/LiveHookDemo";
 import SocialProof from "../components/SocialProof";
 import GridBackground from "../components/ui/GridBackground";
@@ -627,6 +628,8 @@ export default function LandingPage() {
           </div>
         </footer>
       </div>
+
+      <LiveActivityFeed />
     </div>
   );
 }
