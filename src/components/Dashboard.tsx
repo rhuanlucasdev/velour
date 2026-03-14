@@ -23,6 +23,7 @@ import Container from "./ui/Container";
 import SectionHeader from "./ui/SectionHeader";
 import Button from "./ui/Button";
 import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import Card from "./ui/Card";
 import TagPill from "./ideas/TagPill";
 import { useAuth } from "../context/AuthContext";
@@ -98,6 +99,14 @@ function SortableIdeaItem({
 
 export default function Dashboard() {
   const { user, refreshProfile, isPro } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTabParam = searchParams.get("tab") ?? "ideas";
+  const activeTab: "ideas" | "templates" | "drafts" =
+    activeTabParam === "templates" || activeTabParam === "drafts"
+      ? activeTabParam
+      : "ideas";
   const [expandedIdeaId, setExpandedIdeaId] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const ideas = useIdeaStore((state) => state.ideas);
@@ -126,6 +135,31 @@ export default function Dashboard() {
     () => ideas.find((idea) => idea.id === activeDragId) ?? null,
     [ideas, activeDragId],
   );
+  const freeIdeasUsed = Math.min(ideas.length, FREE_MAX_IDEAS);
+  const freeUsageRatio = freeIdeasUsed / FREE_MAX_IDEAS;
+
+  const freeUsageToneClasses =
+    freeUsageRatio < 0.5
+      ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-200"
+      : freeUsageRatio < 0.8
+        ? "border-yellow-400/30 bg-yellow-500/10 text-yellow-200"
+        : "border-red-400/30 bg-red-500/10 text-red-200";
+
+  const tabTitle =
+    activeTab === "templates"
+      ? "Templates"
+      : activeTab === "drafts"
+        ? "Drafts"
+        : "Ideas";
+
+  const tabSubtitle =
+    activeTab === "templates"
+      ? "Template section coming soon"
+      : activeTab === "drafts"
+        ? "Drafts section coming soon"
+        : isLoading
+          ? "Loading your ideas..."
+          : `${ideas.length} ideas — sorted by latest`;
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveDragId(String(event.active.id));
@@ -156,19 +190,26 @@ export default function Dashboard() {
   }, [loadIdeas, resetIdeas, user?.id]);
 
   useEffect(() => {
-    const url = new URL(window.location.href);
-
-    if (
-      url.pathname !== "/dashboard" ||
-      url.searchParams.get("upgrade") !== "success"
-    ) {
+    if (location.search.includes("upgrade=success") === false) {
       return;
     }
 
     toast("Velour Pro activated ✨", { type: "success" });
     void refreshProfile();
-    window.history.replaceState({}, "", "/app");
-  }, [refreshProfile]);
+    navigate("/app?tab=ideas", { replace: true });
+  }, [location.search, navigate, refreshProfile]);
+
+  useEffect(() => {
+    if (
+      activeTabParam === "ideas" ||
+      activeTabParam === "templates" ||
+      activeTabParam === "drafts"
+    ) {
+      return;
+    }
+
+    setSearchParams({ tab: "ideas" }, { replace: true });
+  }, [activeTabParam, setSearchParams]);
 
   const handleCreateIdea = async () => {
     if (!user?.id) {
@@ -195,50 +236,55 @@ export default function Dashboard() {
   return (
     <Container className="py-8">
       <SectionHeader
-        title="Ideas"
-        subtitle={
-          isLoading
-            ? "Loading your ideas..."
-            : `${ideas.length} ideas — sorted by latest`
-        }
+        title={tabTitle}
+        subtitle={tabSubtitle}
         actions={
           <>
-            {!isPro && !isLoading ? (
-              <span className="rounded-md border border-white/[0.1] bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium text-white/65">
-                Free: {Math.min(ideas.length, FREE_MAX_IDEAS)}/{FREE_MAX_IDEAS}{" "}
-                ideas
+            {activeTab === "ideas" && !isPro && !isLoading ? (
+              <span
+                className={`rounded-md border px-2.5 py-1 text-[11px] font-medium ${freeUsageToneClasses}`}
+              >
+                Free: {freeIdeasUsed}/{FREE_MAX_IDEAS} ideas
               </span>
             ) : null}
 
-            <Button
-              size="sm"
-              variant="primary"
-              onClick={() => void handleCreateIdea()}
-              className="group rounded-lg px-3.5 hover:scale-105 hover:shadow-[0_0_22px_rgba(124,92,255,0.4)]"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-90"
-                aria-hidden="true"
+            {activeTab === "ideas" ? (
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() => void handleCreateIdea()}
+                className="group rounded-lg px-3.5 hover:scale-105 hover:shadow-[0_0_22px_rgba(124,92,255,0.4)]"
               >
-                <path d="M12 5v14" />
-                <path d="M5 12h14" />
-              </svg>
-              New Idea
-            </Button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-90"
+                  aria-hidden="true"
+                >
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
+                New Idea
+              </Button>
+            ) : null}
           </>
         }
         className="mb-6"
       />
 
       {/* Ideas grid */}
-      {isLoading ? (
+      {activeTab !== "ideas" ? (
+        <div className="rounded-2xl border border-white/[0.08] bg-[#121212] p-6 text-sm text-white/55">
+          {activeTab === "templates"
+            ? "Templates will be available here soon."
+            : "Drafts will be available here soon."}
+        </div>
+      ) : isLoading ? (
         <div className="rounded-2xl border border-white/[0.08] bg-[#121212] p-6 text-sm text-white/55">
           Loading your ideas...
         </div>

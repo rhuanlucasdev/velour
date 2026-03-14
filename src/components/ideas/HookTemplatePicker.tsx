@@ -43,7 +43,9 @@ export default function HookTemplatePicker({
               }`}
             >
               <span>{template.name}</span>
-              {isLocked ? <span className="ml-2 text-[11px]">Pro Feature</span> : null}
+              {isLocked ? (
+                <span className="ml-2 text-[11px]">Pro Feature</span>
+              ) : null}
             </button>
           );
         })}

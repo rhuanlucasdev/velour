@@ -153,6 +153,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw error;
       }
 
+      // Supabase silently "succeeds" for existing emails (returns empty identities)
+      // to prevent email enumeration. We detect and surface it explicitly.
+      if (
+        data.user &&
+        data.user.identities &&
+        data.user.identities.length === 0
+      ) {
+        const err = new Error("This email is already registered.");
+        (err as Error & { code?: string }).code = "email_already_exists";
+        throw err;
+      }
+
       return {
         requiresEmailConfirmation: !data.session,
       };

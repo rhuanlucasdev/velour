@@ -1,4 +1,11 @@
 import { useEffect } from "react";
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import AppLayout from "./components/AppLayout";
 import UpgradeModal from "./components/billing/UpgradeModal";
 import CommandPalette from "./components/command/CommandPalette";
@@ -8,22 +15,29 @@ import { useAuth } from "./context/AuthContext";
 import ForgotPassword from "./pages/ForgotPassword";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
+import Logout from "./pages/Logout";
 import Profile from "./pages/Profile";
 import RedirectLoading from "./pages/RedirectLoading";
 import Register from "./pages/Register";
 
 export default function App() {
   const { session, isLoading } = useAuth();
-  const pathname = window.location.pathname;
+  const location = useLocation();
+  const navigate = useNavigate();
+  const pathname = location.pathname;
   const isProfileRoute = pathname === "/profile";
   const isAppRoute =
     pathname === "/app" || pathname === "/dashboard" || isProfileRoute;
   const isLoginRoute = pathname === "/login";
   const isRegisterRoute = pathname === "/register";
   const isForgotPasswordRoute = pathname === "/forgot-password";
-  const isAuthRoute = isLoginRoute || isRegisterRoute || isForgotPasswordRoute;
+  const isLogoutRoute = pathname === "/logout";
+  const isAuthRoute =
+    isLoginRoute || isRegisterRoute || isForgotPasswordRoute || isLogoutRoute;
+  const isGuestAuthRoute =
+    isLoginRoute || isRegisterRoute || isForgotPasswordRoute;
   const shouldRedirectToLogin = !isLoading && isAppRoute && !session;
-  const shouldRedirectToApp = !isLoading && isAuthRoute && !!session;
+  const shouldRedirectToApp = !isLoading && isGuestAuthRoute && !!session;
 
   useEffect(() => {
     if (isLoading) {
@@ -31,14 +45,23 @@ export default function App() {
     }
 
     if (isAppRoute && !session) {
-      window.location.replace("/login");
-      return;
+      const timeout = setTimeout(() => {
+        navigate("/login", { replace: true });
+      }, 120);
+
+      return () => clearTimeout(timeout);
     }
 
-    if (isAuthRoute && session) {
-      window.location.replace("/app");
+    if (isGuestAuthRoute && session) {
+      const timeout = setTimeout(() => {
+        navigate("/app", { replace: true });
+      }, 120);
+
+      return () => clearTimeout(timeout);
     }
-  }, [isAppRoute, isAuthRoute, isLoading, session]);
+
+    return;
+  }, [isAppRoute, isGuestAuthRoute, isLoading, navigate, session]);
 
   if (isLoading && (isAppRoute || isAuthRoute)) {
     return (
@@ -67,41 +90,72 @@ export default function App() {
     );
   }
 
-  if (isLoginRoute) {
-    return <Login />;
-  }
-
-  if (isRegisterRoute) {
-    return <Register />;
-  }
-
-  if (isForgotPasswordRoute) {
-    return <ForgotPassword />;
-  }
-
-  if (!isAppRoute) {
-    return <LandingPage />;
-  }
-
-  if (isProfileRoute) {
-    return (
-      <>
-        <AppLayout>
-          <Profile />
-        </AppLayout>
-        <ToastProvider />
-      </>
-    );
-  }
-
   return (
-    <>
-      <AppLayout>
-        <Dashboard />
-      </AppLayout>
-      <CommandPalette />
-      <UpgradeModal />
-      <ToastProvider />
-    </>
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route
+        path="/login"
+        element={session ? <Navigate to="/app" replace /> : <Login />}
+      />
+      <Route
+        path="/register"
+        element={session ? <Navigate to="/app" replace /> : <Register />}
+      />
+      <Route
+        path="/forgot-password"
+        element={session ? <Navigate to="/app" replace /> : <ForgotPassword />}
+      />
+      <Route path="/logout" element={<Logout />} />
+      <Route
+        path="/profile"
+        element={
+          session ? (
+            <>
+              <AppLayout>
+                <Profile />
+              </AppLayout>
+              <ToastProvider />
+            </>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/app"
+        element={
+          session ? (
+            <>
+              <AppLayout>
+                <Dashboard />
+              </AppLayout>
+              <CommandPalette />
+              <UpgradeModal />
+              <ToastProvider />
+            </>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
+          session ? (
+            <>
+              <AppLayout>
+                <Dashboard />
+              </AppLayout>
+              <CommandPalette />
+              <UpgradeModal />
+              <ToastProvider />
+            </>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }

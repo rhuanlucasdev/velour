@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "../utils/toast";
 
@@ -43,6 +44,7 @@ const navItems: NavItem[] = [
   {
     id: "ideas",
     label: "Ideas",
+    href: "/app?tab=ideas",
     icon: (
       <svg
         width="16"
@@ -62,6 +64,7 @@ const navItems: NavItem[] = [
   {
     id: "templates",
     label: "Templates",
+    href: "/app?tab=templates",
     icon: (
       <svg
         width="16"
@@ -112,6 +115,7 @@ const navItems: NavItem[] = [
   {
     id: "drafts",
     label: "Drafts",
+    href: "/app?tab=drafts",
     icon: (
       <svg
         width="16"
@@ -146,10 +150,14 @@ const navItems: NavItem[] = [
 ];
 
 export default function Sidebar() {
-  const [active, setActive] = useState("ideas");
   const [isRedirectingToCheckout, setIsRedirectingToCheckout] = useState(false);
-  const { user, logout, isPro } = useAuth();
-  const currentPath = window.location.pathname;
+  const [isNavigating, setIsNavigating] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, isPro } = useAuth();
+  const currentPath = location.pathname;
+  const currentTab = new URLSearchParams(location.search).get("tab") ?? "ideas";
+  const isIdeasRoute = currentPath === "/app" || currentPath === "/dashboard";
 
   const avatarUrl = user?.user_metadata.avatar_url as string | undefined;
   const displayName =
@@ -160,8 +168,24 @@ export default function Sidebar() {
   const fallbackInitial = displayName.charAt(0).toUpperCase();
 
   const handleLogout = () => {
-    void logout();
+    setIsNavigating(true);
+    navigate("/logout");
   };
+
+  const handleNavigate = (href?: string) => {
+    const currentTarget = `${currentPath}${location.search}`;
+
+    if (!href || href === currentTarget) {
+      return;
+    }
+
+    setIsNavigating(true);
+    navigate(href);
+  };
+
+  useEffect(() => {
+    setIsNavigating(false);
+  }, [currentPath, location.search]);
 
   const handleUpgrade = async () => {
     if (!user?.id) {
@@ -205,19 +229,14 @@ export default function Sidebar() {
       </div>
       <nav className="space-y-1">
         {navItems.map((item) => {
-          const isActive = item.href
-            ? currentPath === item.href
-            : active === item.id;
+          const isActive =
+            item.id === "profile"
+              ? currentPath === "/profile"
+              : isIdeasRoute && currentTab === item.id;
           return (
             <button
               key={item.id}
-              onClick={() => {
-                if (item.href) {
-                  window.location.href = item.href;
-                } else {
-                  setActive(item.id);
-                }
-              }}
+              onClick={() => handleNavigate(item.href)}
               className={`
                 w-full rounded-lg px-3 py-2 text-left text-[13.5px] font-medium transition-all duration-150
                 flex items-center gap-2.5
@@ -287,6 +306,18 @@ export default function Sidebar() {
           Logout
         </button>
       </div>
+
+      {isNavigating ? (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#0A0A0A]/90 backdrop-blur-md">
+          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 px-6 py-7 text-center shadow-[0_20px_80px_rgba(0,0,0,0.55)]">
+            <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-[#7C5CFF]" />
+            <p className="text-sm font-medium text-white/90">Loading...</p>
+            <p className="mt-1 text-xs text-white/45">
+              Opening your workspace section.
+            </p>
+          </div>
+        </div>
+      ) : null}
     </aside>
   );
 }

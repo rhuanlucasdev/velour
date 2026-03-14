@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import GridBackground from "../components/ui/GridBackground";
 import { useAuth } from "../context/AuthContext";
 
@@ -60,8 +61,8 @@ export default function ForgotPassword() {
           }}
         />
 
-        <a
-          href="/login"
+        <Link
+          to="/login"
           className="group relative inline-flex items-center gap-1 text-sm text-white/60 transition-all duration-200 hover:-translate-x-0.5 hover:text-white"
         >
           <span className="transition-transform duration-200 group-hover:-translate-x-0.5">
@@ -69,7 +70,7 @@ export default function ForgotPassword() {
           </span>
           <span>Back</span>
           <span className="pointer-events-none absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-0 bg-white/60 transition-transform duration-300 group-hover:scale-x-100" />
-        </a>
+        </Link>
 
         <h1 className="mt-5 text-2xl font-semibold tracking-tight text-white/95">
           Reset your password

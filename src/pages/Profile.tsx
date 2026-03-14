@@ -1,11 +1,13 @@
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "../utils/toast";
 
 export default function Profile() {
-  const { user, isPro, logout, refreshProfile } = useAuth();
+  const { user, isPro, refreshProfile } = useAuth();
+  const navigate = useNavigate();
 
   const avatarUrl = user?.user_metadata.avatar_url as string | undefined;
   const currentDisplayName =
@@ -71,13 +73,13 @@ export default function Profile() {
       const path = `${user.id}/avatar.${ext}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("avatars")
+        .from("avatar")
         .upload(path, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage
-        .from("avatars")
+        .from("avatar")
         .getPublicUrl(path);
 
       const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
@@ -128,7 +130,7 @@ export default function Profile() {
   };
 
   const handleLogout = () => {
-    void logout();
+    navigate("/logout");
   };
 
   const cardClass =
@@ -140,7 +142,7 @@ export default function Profile() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="mx-auto max-w-xl space-y-4"
+        className="max-w-xl mx-auto space-y-4"
       >
         {/* Page header */}
         <div className="mb-8">
@@ -164,14 +166,14 @@ export default function Profile() {
           </h2>
 
           {/* Avatar row */}
-          <div className="mb-6 flex items-center gap-5">
-            <div className="group relative">
+          <div className="flex items-center gap-5 mb-6">
+            <div className="relative group">
               <div className="rounded-full ring-2 ring-[#7C5CFF]/35 ring-offset-2 ring-offset-[#0A0A0A] transition-all duration-300 group-hover:ring-[#7C5CFF]/65 group-hover:shadow-[0_0_28px_rgba(124,92,255,0.35)]">
                 {avatarPreview ? (
                   <img
                     src={avatarPreview}
                     alt={currentDisplayName}
-                    className="h-16 w-16 rounded-full object-cover"
+                    className="object-cover w-16 h-16 rounded-full"
                   />
                 ) : (
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#7C5CFF]/20 text-xl font-semibold text-[#c3b3ff]">
@@ -190,7 +192,7 @@ export default function Profile() {
               >
                 {isUploadingAvatar ? (
                   <svg
-                    className="h-3 w-3 animate-spin"
+                    className="w-3 h-3 animate-spin"
                     viewBox="0 0 24 24"
                     fill="none"
                   >

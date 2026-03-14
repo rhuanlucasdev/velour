@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { motion } from "framer-motion";
+import { Link, useNavigate } from "react-router-dom";
 import GridBackground from "../components/ui/GridBackground";
 import { useAuth } from "../context/AuthContext";
 import RedirectLoading from "./RedirectLoading";
@@ -42,6 +43,7 @@ function GitHubIcon() {
 
 export default function Login() {
   const { login, loginWithPassword } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,7 +61,7 @@ export default function Login() {
     try {
       await loginWithPassword(email.trim(), password);
       setIsRedirecting(true);
-      window.location.replace("/app");
+      navigate("/app", { replace: true });
     } catch (error) {
       const message =
         error instanceof Error
@@ -124,8 +126,8 @@ export default function Login() {
           }}
         />
 
-        <a
-          href="/"
+        <Link
+          to="/"
           className="group relative inline-flex items-center gap-1 text-sm text-white/60 transition-all duration-200 hover:-translate-x-0.5 hover:text-white"
         >
           <span className="transition-transform duration-200 group-hover:-translate-x-0.5">
@@ -133,7 +135,7 @@ export default function Login() {
           </span>
           <span>Back</span>
           <span className="pointer-events-none absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-0 bg-white/60 transition-transform duration-300 group-hover:scale-x-100" />
-        </a>
+        </Link>
 
         <h1 className="mt-5 text-2xl font-semibold tracking-tight text-white/95">
           Login to Velour
@@ -224,20 +226,20 @@ export default function Login() {
         </div>
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-2 text-sm">
-          <a
-            href="/forgot-password"
+          <Link
+            to="/forgot-password"
             className="text-white/65 transition-colors hover:text-white"
           >
             Forgot password?
-          </a>
+          </Link>
           <p className="text-white/55">
             No account?{" "}
-            <a
-              href="/register"
+            <Link
+              to="/register"
               className="font-medium text-[#B8A6FF] hover:text-white"
             >
               Register
-            </a>
+            </Link>
           </p>
         </div>
       </motion.main>

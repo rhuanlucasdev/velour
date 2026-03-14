@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { motion } from "framer-motion";
+import { Link, useNavigate } from "react-router-dom";
 import GridBackground from "../components/ui/GridBackground";
 import { useAuth } from "../context/AuthContext";
 import RedirectLoading from "./RedirectLoading";
 
 export default function Register() {
   const { registerWithPassword } = useAuth();
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,9 +42,24 @@ export default function Register() {
         );
       } else {
         setIsRedirecting(true);
-        window.location.replace("/app");
+        navigate("/app", { replace: true });
       }
     } catch (error) {
+      const isEmailExists =
+        error instanceof Error &&
+        ((error as Error & { code?: string }).code === "email_already_exists" ||
+          error.message.toLowerCase().includes("already registered"));
+
+      if (isEmailExists) {
+        setErrorMessage(
+          "This email is already registered. Redirecting you to sign in...",
+        );
+        setTimeout(() => {
+          navigate("/login", { replace: true });
+        }, 2500);
+        return;
+      }
+
       const message =
         error instanceof Error
           ? error.message
@@ -90,8 +107,8 @@ export default function Register() {
           }}
         />
 
-        <a
-          href="/"
+        <Link
+          to="/"
           className="group relative inline-flex items-center gap-1 text-sm text-white/60 transition-all duration-200 hover:-translate-x-0.5 hover:text-white"
         >
           <span className="transition-transform duration-200 group-hover:-translate-x-0.5">
@@ -99,7 +116,7 @@ export default function Register() {
           </span>
           <span>Back</span>
           <span className="pointer-events-none absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-0 bg-white/60 transition-transform duration-300 group-hover:scale-x-100" />
-        </a>
+        </Link>
 
         <h1 className="mt-5 text-2xl font-semibold tracking-tight text-white/95">
           Create your account
@@ -206,12 +223,12 @@ export default function Register() {
 
         <p className="mt-6 text-sm text-white/55">
           Already have an account?{" "}
-          <a
-            href="/login"
+          <Link
+            to="/login"
             className="font-medium text-[#B8A6FF] hover:text-white"
           >
             Login
-          </a>
+          </Link>
         </p>
       </motion.main>
     </div>
