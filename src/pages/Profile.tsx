@@ -1,15 +1,19 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
+import { getUserPlan } from "../lib/plans";
+import CreatorEarlyAccessBadge from "../components/ui/CreatorEarlyAccessBadge";
 import { toast } from "../utils/toast";
+import { getUserAvatarUrl } from "../utils/userAvatar";
 
 export default function Profile() {
-  const { user, isPro, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const userPlan = getUserPlan({ user, profile });
 
-  const avatarUrl = user?.user_metadata.avatar_url as string | undefined;
+  const avatarUrl = getUserAvatarUrl(user);
   const currentDisplayName =
     (user?.user_metadata.full_name as string | undefined) ||
     (user?.user_metadata.name as string | undefined) ||
@@ -24,6 +28,7 @@ export default function Profile() {
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(
     avatarUrl,
   );
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
   const [isManagingBilling, setIsManagingBilling] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
@@ -36,6 +41,11 @@ export default function Profile() {
   const canChangePassword = providers.includes("email") && !hasSocialProvider;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setAvatarPreview(avatarUrl);
+    setAvatarLoadError(false);
+  }, [avatarUrl]);
 
   const handleSaveName = async () => {
     if (!displayName.trim() || displayName.trim() === currentDisplayName) {
@@ -75,15 +85,18 @@ export default function Profile() {
 
     const objectUrl = URL.createObjectURL(file);
     setAvatarPreview(objectUrl);
+    setAvatarLoadError(false);
     setIsUploadingAvatar(true);
 
     try {
-      const ext = file.name.split(".").pop();
-      const path = `${user.id}/avatar.${ext}`;
+      const path = `${user.id}/avatar`;
 
       const { error: uploadError } = await supabase.storage
         .from("avatar")
-        .upload(path, file, { upsert: true });
+        .upload(path, file, {
+          upsert: true,
+          contentType: file.type || "image/png",
+        });
 
       if (uploadError) throw uploadError;
 
@@ -99,6 +112,8 @@ export default function Profile() {
 
       if (updateError) throw updateError;
 
+      setAvatarPreview(publicUrl);
+
       await refreshProfile();
       toast("Profile photo updated", { type: "success" });
     } catch (error) {
@@ -107,6 +122,7 @@ export default function Profile() {
         type: "error",
       });
     } finally {
+      URL.revokeObjectURL(objectUrl);
       setIsUploadingAvatar(false);
     }
   };
@@ -121,6 +137,15 @@ export default function Profile() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, email: user.email }),
       });
+
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        const rawBody = await response.text();
+        const serverUnavailableHint = rawBody.includes("<!DOCTYPE")
+          ? "Billing API unavailable. Start the backend server and try again."
+          : "Billing service returned an invalid response.";
+        throw new Error(serverUnavailableHint);
+      }
 
       const data = (await response.json()) as { url?: string; error?: string };
 
@@ -185,7 +210,7 @@ export default function Profile() {
     "rounded-2xl border border-white/[0.07] bg-white/[0.03] p-6 shadow-[0_4px_32px_rgba(0,0,0,0.3)] backdrop-blur-md";
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] px-6 py-12">
+    <div className="min-h-screen px-6 py-12">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -206,22 +231,43 @@ export default function Profile() {
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
+          whileHover={{ y: -2 }}
           transition={{ duration: 0.35, delay: 0.05, ease: "easeOut" }}
-          className={cardClass}
+          className={`${cardClass} relative overflow-hidden border-[#7C5CFF]/15 shadow-[0_10px_44px_rgba(0,0,0,0.42),0_0_22px_rgba(124,92,255,0.08)]`}
         >
-          <h2 className="mb-5 text-[11px] font-semibold uppercase tracking-widest text-white/25">
-            Profile
-          </h2>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(circle at 18% 0%, rgba(124,92,255,0.16), transparent 45%)",
+            }}
+          />
+
+          <div className="relative z-10 mb-5 flex items-center justify-between gap-3">
+            <h2 className="text-[11px] font-semibold uppercase tracking-widest text-white/30">
+              Profile
+            </h2>
+            <motion.span
+              initial={{ scale: 0.96, opacity: 0.85 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.12 }}
+              className="rounded-full border border-[#7C5CFF]/25 bg-[#7C5CFF]/12 px-2.5 py-1 text-[10px] font-medium text-[#cdbfff]"
+            >
+              Personal Info
+            </motion.span>
+          </div>
 
           {/* Avatar row */}
-          <div className="flex items-center gap-5 mb-6">
-            <div className="relative group">
-              <div className="rounded-full ring-2 ring-[#7C5CFF]/35 ring-offset-2 ring-offset-[#0A0A0A] transition-all duration-300 group-hover:ring-[#7C5CFF]/65 group-hover:shadow-[0_0_28px_rgba(124,92,255,0.35)]">
-                {avatarPreview ? (
+          <div className="relative z-10 mb-6 flex items-center gap-5 rounded-xl border border-white/[0.08] bg-white/[0.02] p-3.5">
+            <motion.div className="relative group" whileHover={{ scale: 1.02 }}>
+              <div className="rounded-full ring-2 ring-[#7C5CFF]/38 ring-offset-2 ring-offset-[#0E0E0E] transition-all duration-300 group-hover:ring-[#A388FF]/70 group-hover:shadow-[0_0_30px_rgba(124,92,255,0.4)]">
+                {avatarPreview && !avatarLoadError ? (
                   <img
                     src={avatarPreview}
                     alt={currentDisplayName}
-                    className="object-cover w-16 h-16 rounded-full"
+                    className="h-16 w-16 rounded-full object-cover"
+                    onError={() => setAvatarLoadError(true)}
                   />
                 ) : (
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#7C5CFF]/20 text-xl font-semibold text-[#c3b3ff]">
@@ -277,16 +323,17 @@ export default function Profile() {
                 className="hidden"
                 onChange={(e) => void handleAvatarChange(e)}
               />
-            </div>
+            </motion.div>
 
             <div>
-              <p className="text-sm font-medium text-white/80">
+              <p className="text-sm font-medium text-white/88">
                 {currentDisplayName}
               </p>
+              <p className="mt-0.5 text-[11px] text-white/35">Account avatar</p>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-0.5 text-xs text-white/30 transition-colors hover:text-[#a78fff]"
+                className="mt-1 text-xs text-white/30 transition-colors hover:text-[#b8a6ff]"
               >
                 Change photo
               </button>
@@ -294,7 +341,7 @@ export default function Profile() {
           </div>
 
           {/* Display name */}
-          <div className="mb-4">
+          <div className="relative z-10 mb-4">
             <label className="mb-1.5 block text-xs font-medium text-white/40">
               Display name
             </label>
@@ -341,7 +388,7 @@ export default function Profile() {
                 <button
                   type="button"
                   onClick={() => setIsEditingName(true)}
-                  className="text-xs text-white/25 transition-colors hover:text-[#a78fff] group-hover:text-white/40"
+                  className="text-xs text-white/25 transition-colors hover:text-[#b8a6ff] group-hover:text-white/40"
                 >
                   Edit
                 </button>
@@ -350,11 +397,11 @@ export default function Profile() {
           </div>
 
           {/* Email */}
-          <div>
+          <div className="relative z-10">
             <label className="mb-1.5 block text-xs font-medium text-white/40">
               Email
             </label>
-            <div className="flex items-center rounded-lg border border-white/[0.05] bg-white/[0.015] px-3 py-2.5">
+            <div className="flex items-center rounded-lg border border-white/[0.07] bg-white/[0.02] px-3 py-2.5">
               <span className="text-sm text-white/40">{user?.email}</span>
               <span className="ml-auto rounded-md bg-white/[0.05] px-2 py-0.5 text-[11px] text-white/25">
                 Read-only
@@ -367,6 +414,7 @@ export default function Profile() {
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
+          whileHover={{ y: -2 }}
           transition={{ duration: 0.35, delay: 0.1, ease: "easeOut" }}
           className={cardClass}
         >
@@ -378,15 +426,27 @@ export default function Profile() {
             <div>
               <p className="text-sm font-medium text-white/75">Current plan</p>
               <p className="mt-0.5 text-xs text-white/35">
-                {isPro
-                  ? "Full access to all Pro features"
-                  : "Limited to free tier"}
+                {userPlan === "creator"
+                  ? "Access to all Creator features, analytics and calendar"
+                  : userPlan === "pro"
+                    ? "Full access to all Pro features"
+                    : "Limited to free tier"}
               </p>
             </div>
 
-            {isPro ? (
+            {userPlan === "creator" ? (
+              <CreatorEarlyAccessBadge className="shrink-0" />
+            ) : userPlan === "pro" ? (
               <div className="flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]" />
+                <motion.span
+                  className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]"
+                  animate={{ scale: [1, 1.2, 1], opacity: [0.8, 1, 0.8] }}
+                  transition={{
+                    duration: 1.8,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
                 <span className="text-xs font-semibold text-emerald-300">
                   Velour Pro
                 </span>
@@ -398,12 +458,14 @@ export default function Profile() {
             )}
           </div>
 
-          {isPro && (
+          {userPlan !== "free" && (
             <div className="mt-5 border-t border-white/[0.05] pt-4">
-              <button
+              <motion.button
                 type="button"
                 onClick={() => void handleManageBilling()}
                 disabled={isManagingBilling}
+                whileHover={{ y: -1, scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
                 className="inline-flex items-center gap-2 rounded-lg border border-white/[0.09] bg-white/[0.04] px-4 py-2 text-xs font-medium text-white/60 transition-all duration-150 hover:border-white/[0.18] hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
@@ -432,7 +494,7 @@ export default function Profile() {
                   />
                 </svg>
                 {isManagingBilling ? "Opening portal…" : "Manage Billing"}
-              </button>
+              </motion.button>
             </div>
           )}
         </motion.section>
@@ -441,6 +503,7 @@ export default function Profile() {
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
+          whileHover={{ y: -2 }}
           transition={{ duration: 0.35, delay: 0.15, ease: "easeOut" }}
           className={cardClass}
         >
@@ -487,14 +550,16 @@ export default function Profile() {
                   />
                 </div>
 
-                <button
+                <motion.button
                   type="button"
                   onClick={() => void handleChangePassword()}
                   disabled={isUpdatingPassword}
+                  whileHover={{ y: -1, scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
                   className="inline-flex items-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2 text-xs font-medium text-white/65 transition-all duration-150 hover:border-[#7C5CFF]/35 hover:bg-[#7C5CFF]/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isUpdatingPassword ? "Updating..." : "Update password"}
-                </button>
+                </motion.button>
               </div>
             </div>
           ) : hasSocialProvider ? (
@@ -509,9 +574,11 @@ export default function Profile() {
             </div>
           ) : null}
 
-          <button
+          <motion.button
             type="button"
             onClick={handleLogout}
+            whileHover={{ y: -1, scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
             className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-xs font-medium text-white/55 transition-all duration-150 hover:border-red-500/25 hover:bg-red-500/8 hover:text-red-400"
           >
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
@@ -524,7 +591,7 @@ export default function Profile() {
               />
             </svg>
             Sign out
-          </button>
+          </motion.button>
         </motion.section>
       </motion.div>
     </div>

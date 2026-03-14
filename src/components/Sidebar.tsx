@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import PlanBadge from "./ui/PlanBadge";
+import CreatorEarlyAccessBadge from "./ui/CreatorEarlyAccessBadge";
 import { useAuth } from "../context/AuthContext";
 import { getUserPlan } from "../lib/plans";
 import { getUserAvatarUrl } from "../utils/userAvatar";
@@ -338,7 +339,7 @@ export default function Sidebar() {
 
       <div className="mt-auto border-t border-white/[0.08] px-1 pt-4">
         {isCreator ? (
-          <PlanBadge variant="creator" label="Velour Creator Active" />
+          <CreatorEarlyAccessBadge className="mb-3 w-full" compact />
         ) : isPro ? (
           <PlanBadge variant="pro" label="Velour Pro Active" />
         ) : (
