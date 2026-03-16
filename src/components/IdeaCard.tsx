@@ -1,21 +1,14 @@
-
 import { motion, useSpring } from "framer-motion";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { useIdeaStore } from "../store/ideaStore";
 import { toast } from "../utils/toast";
 import TagPill from "./ideas/TagPill";
 import Card from "./ui/Card";
-import { analyzeHook } from "../lib/hookAnalytics";
-import HookStrengthIndicator from "./ideas/HookStrengthIndicator";
-import { formatDistanceToNow } from "date-fns";
-
 
 export interface IdeaCardProps {
   id: string;
   title: string;
   tags: string[];
-  hook?: string;
-  createdAt?: number;
   isNew?: boolean;
   disableOpen?: boolean;
   onOpen?: () => void;
@@ -25,8 +18,6 @@ export default function IdeaCard({
   id,
   title,
   tags,
-  hook = "",
-  createdAt,
   isNew = false,
   disableOpen = false,
   onOpen,
@@ -110,12 +101,6 @@ export default function IdeaCard({
     rotateY.set(0);
   };
 
-  // Analytics
-  const analytics = analyzeHook(hook || "");
-  const score = analytics.hookScore;
-  const virality = analytics.viralityPotential;
-  const lastUpdated = createdAt ? formatDistanceToNow(new Date(createdAt), { addSuffix: true }) : "recently";
-
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -137,21 +122,18 @@ export default function IdeaCard({
     >
       <Card
         hoverable={false}
-        className="relative h-full min-h-[180px] overflow-hidden border-white/[0.08] bg-gradient-to-br from-[#181429]/80 via-[#181429]/90 to-[#1A1430]/90 shadow-[0_16px_42px_rgba(0,0,0,0.45),0_0_24px_rgba(124,92,255,0.22)] transition-all duration-200 group-hover:border-[#7C5CFF]/35 group-hover:shadow-[0_12px_30px_rgba(0,0,0,0.5),0_0_22px_rgba(124,92,255,0.2)]"
+        className="relative h-full min-h-[140px] overflow-hidden border-white/[0.06] transition-all duration-200 group-hover:border-[#7C5CFF]/35 group-hover:shadow-[0_12px_30px_rgba(0,0,0,0.5),0_0_22px_rgba(124,92,255,0.2)]"
       >
-        {/* Glass/gradient hover effect */}
         <div
           className="pointer-events-none absolute inset-0 transition-opacity duration-200"
           style={{
             opacity: mouseX === null || mouseY === null ? 0 : 1,
             background:
               mouseX !== null && mouseY !== null
-                ? `radial-gradient(300px circle at ${mouseX}px ${mouseY}px, rgba(124,92,255,0.18), transparent 40%)`
+                ? `radial-gradient(300px circle at ${mouseX}px ${mouseY}px, rgba(124,92,255,0.15), transparent 40%)`
                 : "none",
           }}
         />
-
-        {/* Quick actions */}
         <button
           onClick={(event) => {
             event.stopPropagation();
@@ -180,30 +162,30 @@ export default function IdeaCard({
           </svg>
         </button>
 
-        {/* Title and tags */}
-        <div className="relative z-10 flex flex-col gap-2">
-          {isEditing ? (
-            <input
-              ref={inputRef}
-              autoFocus
-              value={titleValue}
-              onClick={(event) => event.stopPropagation()}
-              onChange={(event) => setTitleValue(event.target.value)}
-              onBlur={saveTitle}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  saveTitle();
-                }
-                if (event.key === "Escape") {
-                  event.preventDefault();
-                  cancelEdit();
-                }
-              }}
-              className="relative z-10 w-full bg-transparent text-[15px] font-semibold tracking-tight text-white outline-none"
-              aria-label="Edit idea title"
-            />
-          ) : (
+        {isEditing ? (
+          <input
+            ref={inputRef}
+            autoFocus
+            value={titleValue}
+            onClick={(event) => event.stopPropagation()}
+            onChange={(event) => setTitleValue(event.target.value)}
+            onBlur={saveTitle}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                saveTitle();
+              }
+
+              if (event.key === "Escape") {
+                event.preventDefault();
+                cancelEdit();
+              }
+            }}
+            className="relative z-10 w-full bg-transparent text-[15px] font-semibold tracking-tight text-white outline-none"
+            aria-label="Edit idea title"
+          />
+        ) : (
+          <div className="relative z-10 space-y-3">
             <h3
               onClick={(event) => {
                 event.stopPropagation();
@@ -213,42 +195,16 @@ export default function IdeaCard({
             >
               {title}
             </h3>
-          )}
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {tags.slice(0, 3).map((tag) => (
-                <TagPill key={tag} label={tag} />
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* Hook preview */}
-        {hook && (
-          <div className="mt-3">
-            <p className="text-[13px] font-medium text-white/80 truncate" title={hook}>
-              {hook.length > 120 ? hook.slice(0, 120) + "…" : hook}
-            </p>
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {tags.slice(0, 3).map((tag) => (
+                  <TagPill key={tag} label={tag} />
+                ))}
+              </div>
+            )}
           </div>
         )}
-
-        {/* Analytics row */}
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-[#A48DFF]/35 bg-[#7C5CFF]/15 px-2.5 py-1 text-[11px] font-semibold text-[#D9CEFF]">
-            Score: {score}
-          </span>
-          <span className="rounded-full border border-[#A48DFF]/20 bg-[#7C5CFF]/10 px-2 py-1 text-[10px] font-medium text-[#C7BFFF]">
-            Virality: {virality}
-          </span>
-          <span className="rounded-full border border-white/[0.10] bg-white/[0.03] px-2 py-1 text-[10px] font-medium text-white/60">
-            {lastUpdated ? `Updated ${lastUpdated}` : "Recently updated"}
-          </span>
-        </div>
-
-        {/* Hook strength bar */}
-        <div className="mt-3">
-          <HookStrengthIndicator hook={hook || ""} />
-        </div>
       </Card>
     </motion.div>
   );
