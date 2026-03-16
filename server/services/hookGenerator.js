@@ -4,19 +4,7 @@ import { getEnv } from "../env.js";
 const groqApiKey = getEnv("GROQ_API_KEY");
 const groq = new Groq({ apiKey: groqApiKey });
 
-export interface HookGenerationRequest {
-  topic: string;
-  tone: string;
-  audience: string;
-}
-
-export interface HookGenerationResponse {
-  hooks: string[];
-}
-
-export async function generateHooks(
-  request: HookGenerationRequest
-): Promise<HookGenerationResponse> {
+export async function generateHooks(request) {
   const { topic, tone, audience } = request;
 
   const prompt = `You are a viral content strategist.
