@@ -132,6 +132,9 @@ STRIPE_SECRET_KEY=sk_test_xxxxx
 STRIPE_PRO_PRICE_ID=price_xxxxx
 STRIPE_WEBHOOK_SECRET=whsec_xxxxx
 
+OPENAI_API_KEY=sk-proj_xxxxx
+OPENAI_MODEL=gpt-4.1-mini
+
 SUPABASE_SERVICE_ROLE_KEY=sb_secret_xxxxx
 ```
 

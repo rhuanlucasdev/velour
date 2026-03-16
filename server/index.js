@@ -11,6 +11,8 @@ const stripeProPriceId = maybeGetEnv("STRIPE_PRO_PRICE_ID");
 const stripeCreatorPriceId = maybeGetEnv("STRIPE_CREATOR_PRICE_ID");
 const stripeWebhookSecret = maybeGetEnv("STRIPE_WEBHOOK_SECRET");
 const appUrl = getEnv("APP_URL", "http://localhost:5173");
+const openAiApiKey = maybeGetEnv("OPENAI_API_KEY");
+const openAiModel = getEnv("OPENAI_MODEL", "gpt-4.1-mini");
 
 function assertStripeClientConfigured(response) {
   if (!stripe || !supabaseAdmin) {
@@ -42,6 +44,31 @@ function assertStripeConfigured(response) {
 
 function getOrigin(request) {
   return request.headers.origin || appUrl;
+}
+
+function extractHooksFromContent(content) {
+  if (!content || typeof content !== "string") {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(content);
+
+    if (!Array.isArray(parsed?.hooks)) {
+      return [];
+    }
+
+    return parsed.hooks
+      .map((hook) => (typeof hook === "string" ? hook.trim() : ""))
+      .filter((hook) => hook.length > 0)
+      .slice(0, 10);
+  } catch {
+    return content
+      .split(/\r?\n/)
+      .map((line) => line.replace(/^\s*(\d+\.|[-*])\s*/, "").trim())
+      .filter((line) => line.length > 0)
+      .slice(0, 10);
+  }
 }
 
 async function upsertProfile(payload) {
@@ -201,6 +228,89 @@ app.post(
 );
 
 app.use(express.json());
+
+app.post("/api/generate-hooks", async (request, response) => {
+  const { topic, audience, tone } = request.body ?? {};
+
+  const normalizedTopic = typeof topic === "string" ? topic.trim() : "";
+  const normalizedAudience =
+    typeof audience === "string" ? audience.trim() : "";
+  const normalizedTone = typeof tone === "string" ? tone.trim() : "";
+
+  if (!normalizedTopic || !normalizedAudience || !normalizedTone) {
+    response.status(400).json({
+      error: "Missing required fields: topic, audience, tone.",
+    });
+    return;
+  }
+
+  if (!openAiApiKey) {
+    response.status(500).json({
+      error: "OpenAI is not configured. Add OPENAI_API_KEY.",
+    });
+    return;
+  }
+
+  try {
+    const openAiResponse = await fetch(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${openAiApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: openAiModel,
+          temperature: 0.9,
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a viral social media copywriter. Generate concise, high-performing opening hooks.",
+            },
+            {
+              role: "user",
+              content: `Generate exactly 10 hook options in JSON only. Return this exact shape: {\"hooks\":[\"...\"]}. Topic: ${normalizedTopic}. Audience: ${normalizedAudience}. Tone: ${normalizedTone}. Constraints: each hook must be one sentence, max 16 words, no hashtags, no emojis, no numbering.`,
+            },
+          ],
+          response_format: {
+            type: "json_object",
+          },
+        }),
+      },
+    );
+
+    const openAiData = await openAiResponse.json();
+
+    if (!openAiResponse.ok) {
+      response.status(502).json({
+        error:
+          openAiData?.error?.message ||
+          "OpenAI request failed while generating hooks.",
+      });
+      return;
+    }
+
+    const content = openAiData?.choices?.[0]?.message?.content;
+    const hooks = extractHooksFromContent(content);
+
+    if (hooks.length < 10) {
+      response.status(502).json({
+        error:
+          "OpenAI did not return enough hooks. Please try again with more context.",
+      });
+      return;
+    }
+
+    response.json({ hooks: hooks.slice(0, 10) });
+  } catch (error) {
+    response.status(500).json({
+      error:
+        error instanceof Error ? error.message : "Failed to generate hooks.",
+    });
+  }
+});
 
 app.post("/api/create-portal-session", async (request, response) => {
   if (!assertStripeClientConfigured(response)) {

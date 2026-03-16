@@ -40,6 +40,14 @@ export default function IdeaExpansionModal({
   const deleteIdea = useIdeaStore((state) => state.deleteIdea);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSavingToLibrary, setIsSavingToLibrary] = useState(false);
+  const [savingGeneratedHookIndex, setSavingGeneratedHookIndex] = useState<
+    number | null
+  >(null);
+  const [hookTopic, setHookTopic] = useState(idea.title);
+  const [hookAudience, setHookAudience] = useState("");
+  const [hookTone, setHookTone] = useState("");
+  const [generatedHooks, setGeneratedHooks] = useState<string[]>([]);
+  const [isGeneratingHooks, setIsGeneratingHooks] = useState(false);
   const [isInsightOpen, setIsInsightOpen] = useState(false);
   const [isTwistOpen, setIsTwistOpen] = useState(false);
   const [isCtaOpen, setIsCtaOpen] = useState(false);
@@ -99,8 +107,11 @@ export default function IdeaExpansionModal({
     toast("Hook copiado para o clipboard ✨", { type: "success" });
   };
 
-  const handleSaveHookToLibrary = async () => {
-    if (!idea.hook.trim()) {
+  const handleSaveHookToLibrary = async (
+    hookText = idea.hook,
+    hookIndex?: number,
+  ) => {
+    if (!hookText.trim()) {
       toast("Write a hook first before saving to library.", { type: "info" });
       return;
     }
@@ -110,7 +121,11 @@ export default function IdeaExpansionModal({
       return;
     }
 
-    setIsSavingToLibrary(true);
+    if (hookIndex === undefined) {
+      setIsSavingToLibrary(true);
+    } else {
+      setSavingGeneratedHookIndex(hookIndex);
+    }
 
     try {
       const primaryCategory =
@@ -120,7 +135,7 @@ export default function IdeaExpansionModal({
           .toLowerCase() || "general";
 
       const { error } = await supabase.from("hooks_library").insert({
-        hook_text: idea.hook.trim(),
+        hook_text: hookText.trim(),
         category: primaryCategory,
         likes: 0,
         copies: 0,
@@ -135,7 +150,57 @@ export default function IdeaExpansionModal({
     } catch {
       toast("Could not save hook to library", { type: "error" });
     } finally {
-      setIsSavingToLibrary(false);
+      if (hookIndex === undefined) {
+        setIsSavingToLibrary(false);
+      } else {
+        setSavingGeneratedHookIndex(null);
+      }
+    }
+  };
+
+  const handleGenerateHooks = async () => {
+    if (!hookTopic.trim() || !hookAudience.trim() || !hookTone.trim()) {
+      toast("Fill topic, audience, and tone to generate hooks.", {
+        type: "info",
+      });
+      return;
+    }
+
+    setIsGeneratingHooks(true);
+
+    try {
+      const response = await fetch("/api/generate-hooks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          topic: hookTopic,
+          audience: hookAudience,
+          tone: hookTone,
+        }),
+      });
+
+      const data = (await response.json()) as {
+        hooks?: string[];
+        error?: string;
+      };
+
+      if (!response.ok || !Array.isArray(data.hooks)) {
+        throw new Error(data.error || "Could not generate hooks");
+      }
+
+      setGeneratedHooks(data.hooks.slice(0, 10));
+      toast("AI generated hooks ready ✨", { type: "success" });
+    } catch (error) {
+      toast(
+        error instanceof Error ? error.message : "Could not generate hooks",
+        {
+          type: "error",
+        },
+      );
+    } finally {
+      setIsGeneratingHooks(false);
     }
   };
 
@@ -175,6 +240,11 @@ export default function IdeaExpansionModal({
       setIsCtaOpen(true);
     }
   }, [hasCta]);
+
+  useEffect(() => {
+    setHookTopic(idea.title);
+    setGeneratedHooks([]);
+  }, [idea.id, idea.title]);
 
   const renderCollapsibleBlock = ({
     title,
@@ -374,6 +444,87 @@ export default function IdeaExpansionModal({
           >
             <HookTemplatePicker ideaId={idea.id} />
           </motion.div>
+
+          <motion.section
+            variants={{
+              hidden: { opacity: 0, y: 8 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            className="rounded-xl border border-white/[0.06] bg-[#1C1C1C]/70 p-4"
+          >
+            <h3 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-white/45">
+              AI Hook Generator
+            </h3>
+
+            <div className="mt-3 grid gap-2 md:grid-cols-3">
+              <input
+                value={hookTopic}
+                onChange={(event) => setHookTopic(event.target.value)}
+                placeholder="Topic"
+                className="rounded-lg border border-white/[0.1] bg-black/20 px-3 py-2 text-sm text-white/90 outline-none placeholder:text-white/35 focus:border-[#7C5CFF]/55"
+              />
+              <input
+                value={hookAudience}
+                onChange={(event) => setHookAudience(event.target.value)}
+                placeholder="Audience"
+                className="rounded-lg border border-white/[0.1] bg-black/20 px-3 py-2 text-sm text-white/90 outline-none placeholder:text-white/35 focus:border-[#7C5CFF]/55"
+              />
+              <input
+                value={hookTone}
+                onChange={(event) => setHookTone(event.target.value)}
+                placeholder="Tone"
+                className="rounded-lg border border-white/[0.1] bg-black/20 px-3 py-2 text-sm text-white/90 outline-none placeholder:text-white/35 focus:border-[#7C5CFF]/55"
+              />
+            </div>
+
+            <div className="mt-3">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => void handleGenerateHooks()}
+                disabled={isGeneratingHooks}
+              >
+                {isGeneratingHooks ? "Generating..." : "Generate 10 Hooks"}
+              </Button>
+            </div>
+
+            {generatedHooks.length > 0 ? (
+              <div className="mt-4 space-y-2">
+                {generatedHooks.map((hook, index) => (
+                  <div
+                    key={`${hook}-${index}`}
+                    className="rounded-lg border border-white/[0.08] bg-black/20 p-3"
+                  >
+                    <p className="text-sm text-white/85">{hook}</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateIdeaWithAutosave({ hook });
+                          toast("Hook applied to idea", { type: "success" });
+                        }}
+                        className="inline-flex items-center rounded-lg border border-white/[0.12] bg-[#1A1A1A] px-2.5 py-1.5 text-xs text-white/80 transition duration-200 hover:border-violet-400/60"
+                      >
+                        Use Hook
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void handleSaveHookToLibrary(hook, index)
+                        }
+                        disabled={savingGeneratedHookIndex === index}
+                        className="inline-flex items-center rounded-lg border border-[#7C5CFF]/35 bg-[#7C5CFF]/12 px-2.5 py-1.5 text-xs text-[#d8cfff] transition-all duration-200 hover:border-[#9f85ff]/45 hover:bg-[#7C5CFF]/20 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {savingGeneratedHookIndex === index
+                          ? "Saving..."
+                          : "Save Hook"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </motion.section>
 
           <motion.div
             variants={{
