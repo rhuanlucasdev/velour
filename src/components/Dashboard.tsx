@@ -30,6 +30,7 @@ import { useAuth } from "../context/AuthContext";
 import { canCreateIdea, getUserPlan, plans } from "../lib/plans";
 import { useUpgradeStore } from "../store/upgradeStore";
 import OnboardingModal from "./onboarding/OnboardingModal";
+import AiHookGenerator from "./ai/AiHookGenerator";
 
 const getBentoClasses = (index: number) => {
   if (index === 0) {
@@ -332,6 +333,13 @@ export default function Dashboard() {
         }
         className="mb-6"
       />
+
+      {/* AI Hook Generator - Creator plan only */}
+      {activeTab === "ideas" && (
+        <div className="mb-8">
+          <AiHookGenerator />
+        </div>
+      )}
 
       {/* Ideas grid */}
       {activeTab !== "ideas" ? (

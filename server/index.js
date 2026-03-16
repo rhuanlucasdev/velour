@@ -2,6 +2,7 @@ import express from "express";
 import Stripe from "stripe";
 import { getEnv, maybeGetEnv } from "./env.js";
 import { supabaseAdmin } from "./supabaseAdmin.js";
+import { aiRouter } from "./routes/ai.js";
 
 const app = express();
 const port = Number(getEnv("API_PORT", "4242"));
@@ -201,6 +202,8 @@ app.post(
 );
 
 app.use(express.json());
+
+app.use("/api/ai", aiRouter);
 
 app.post("/api/create-portal-session", async (request, response) => {
   if (!assertStripeClientConfigured(response)) {
